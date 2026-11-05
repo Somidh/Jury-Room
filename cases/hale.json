@@ -1,0 +1,59 @@
+{
+  "id": "hale",
+  "title": "State v. Tobin Hale",
+  "charge": "Second-degree murder",
+  "summary": "Marek Lindqvist, night supervisor at Harbor Cold Storage, was found dead in a chilled corridor at 6 AM, killed by a blow to the head. Tobin Hale, 34, a forklift operator from Dockside Estate, was fired by Lindqvist that afternoon. Hale says he came back that night for his tools and left by 11:40 PM.",
+  "evidence": [
+    { "id": "badge", "label": "The badge log", "detail": "Hale's badge opened the dock door at 11:52 PM. An IT audit found the reader's clock can drift up to 9 minutes, and staff admit they shared badges.", "strength": "disputed" },
+    { "id": "bar", "label": "The pry bar", "detail": "Found near the body with the victim's blood and a 9-point partial print matching Hale. Hale used this bar on most shifts.", "strength": "strong" },
+    { "id": "text", "label": "The text message", "detail": "At 5:10 PM Hale texted a coworker: \"He'll pay for this.\" Hale had booked an employment lawyer for the next morning.", "strength": "circumstantial" },
+    { "id": "video", "label": "The dock video", "detail": "A hooded figure crosses the dock at 11:58 PM, roughly Hale's height. The camera records 2 frames a second and shows no face.", "strength": "circumstantial" },
+    { "id": "tod", "label": "Time of death", "detail": "Estimated at 11:30 PM to 12:30 AM. The medical examiner agreed the cold corridor could widen that by 45 minutes either way.", "strength": "disputed" },
+    { "id": "phone", "label": "The phone ping", "detail": "Hale's phone used a tower near the dock at 12:14 AM. The same tower also covers his flat.", "strength": "circumstantial" },
+    { "id": "glove", "label": "The second glove", "detail": "A bloodstained work glove was found by the dock door. It was never tested.", "strength": "disputed" },
+    { "id": "record", "label": "The prior conviction", "detail": "Hale has one assault conviction, from when he was 19. There has been nothing in the 15 years since.", "strength": "circumstantial" }
+  ],
+  "witnesses": [
+    { "id": "porter", "name": "Inez Porter", "role": "Night guard", "statement": "Heard shouting around midnight and says she knew Tobin's voice. She was behind a freezer door next to the compressors. She had reported Hale twice before." },
+    { "id": "nand", "name": "Priya Nand", "role": "Coworker", "statement": "Received the text. Says Hale was \"all talk\" and that he was crying when he told her he'd been fired." },
+    { "id": "brandt", "name": "Det. Sol Brandt", "role": "Lead detective", "statement": "Named Hale as the suspect within an hour of arriving. Admitted under cross-examination that the glove was never sent to the lab." },
+    { "id": "lund", "name": "Owen Lund", "role": "Victim's brother-in-law", "statement": "Says Lindqvist had been skimming stock and owed money to someone on the day shift." }
+  ],
+  "points": [
+    { "id": "g1", "evidenceId": "badge", "claim": "His badge opened the door after he says he left", "pushes": "guilty", "weight": 10, "tactic": "evidence" },
+    { "id": "g2", "evidenceId": "bar", "claim": "The victim's blood and his print are on the weapon", "pushes": "guilty", "weight": 12, "tactic": "evidence" },
+    { "id": "g3", "evidenceId": "text", "claim": "He threatened the victim hours before", "pushes": "guilty", "weight": 7, "tactic": "emotional" },
+    { "id": "g4", "evidenceId": "video", "claim": "The figure on video matches his height", "pushes": "guilty", "weight": 5, "tactic": "evidence" },
+    { "id": "g5", "evidenceId": "text", "claim": "He'd been fired by the victim that same day", "pushes": "guilty", "weight": 8, "tactic": "logic" },
+    { "id": "g6", "evidenceId": "badge", "claim": "Even with clock drift, 11:43 still doesn't match his 11:40", "pushes": "guilty", "weight": 8, "tactic": "logic" },
+    { "id": "g7", "evidenceId": "phone", "claim": "His phone was near the dock after midnight", "pushes": "guilty", "weight": 4, "tactic": "evidence" },
+    { "id": "g8", "evidenceId": "record", "claim": "He has been violent before", "pushes": "guilty", "weight": 6, "tactic": "emotional" },
+    { "id": "n1", "evidenceId": "badge", "claim": "The badge clock drifts up to 9 minutes", "pushes": "not_guilty", "weight": 10, "tactic": "logic" },
+    { "id": "n2", "evidenceId": "badge", "claim": "Staff shared badges, so a badge isn't a person", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n3", "evidenceId": "bar", "claim": "He used that bar daily, so his print proves nothing", "pushes": "not_guilty", "weight": 9, "tactic": "logic" },
+    { "id": "n4", "evidenceId": "text", "claim": "He'd booked a lawyer, so 'pay' may mean a lawsuit", "pushes": "not_guilty", "weight": 7, "tactic": "evidence" },
+    { "id": "n5", "evidenceId": "video", "claim": "2 frames a second and no face identifies nobody", "pushes": "not_guilty", "weight": 6, "tactic": "evidence" },
+    { "id": "n6", "evidenceId": "tod", "claim": "The cold widens time of death by 45 minutes each way", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n7", "evidenceId": "phone", "claim": "That tower also covers his flat", "pushes": "not_guilty", "weight": 6, "tactic": "logic" },
+    { "id": "n8", "evidenceId": "porter", "claim": "Nobody can identify a voice through a freezer door beside compressors", "pushes": "not_guilty", "weight": 12, "tactic": "evidence" },
+    { "id": "n9", "evidenceId": "porter", "claim": "Porter had reported him twice, so she expected it to be him", "pushes": "not_guilty", "weight": 7, "tactic": "emotional" },
+    { "id": "n10", "evidenceId": "glove", "claim": "A bloodstained glove was never tested", "pushes": "not_guilty", "weight": 12, "tactic": "logic" },
+    { "id": "n11", "evidenceId": "brandt", "claim": "The detective picked his suspect within an hour", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n12", "evidenceId": "lund", "claim": "The victim's skimming gave someone else a motive", "pushes": "not_guilty", "weight": 10, "tactic": "logic" },
+    { "id": "n13", "evidenceId": "record", "claim": "15 clean years mean the conviction says little", "pushes": "not_guilty", "weight": 5, "tactic": "emotional" },
+    { "id": "n14", "evidenceId": "nand", "claim": "He was crying, not plotting, when he told Priya", "pushes": "not_guilty", "weight": 6, "tactic": "emotional" }
+  ],
+  "focus": {
+    "1": ["badge", "tod"],
+    "2": [],
+    "3": ["text"],
+    "4": ["badge"],
+    "5": ["tod"],
+    "6": ["porter"],
+    "7": [],
+    "8": ["porter"],
+    "9": ["nand"],
+    "10": ["record"],
+    "11": ["glove", "brandt"]
+  }
+}

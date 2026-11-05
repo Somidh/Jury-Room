@@ -1,0 +1,37 @@
+{
+  "name": "jury-room",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.7.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "switch:init": "node scripts/init-switch-env.mjs",
+    "switch:up": "docker compose -f infra/docker-compose.yml --env-file infra/.env up -d",
+    "switch:down": "docker compose -f infra/docker-compose.yml --env-file infra/.env down",
+    "switch:key": "node scripts/create-registration-key.mjs",
+    "gate1": "tsx --env-file=.env scripts/gate1.ts",
+    "bootstrap": "tsx --env-file=.env scripts/bootstrap.ts",
+    "trial": "tsx --env-file=.env scripts/trial.ts",
+    "sim": "tsx scripts/sim.ts",
+    "test": "vitest run",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "dependencies": {
+    "@jury/core": "workspace:*",
+    "@jury/server": "workspace:*",
+    "@jury/switch-client": "workspace:*"
+  }
+}
