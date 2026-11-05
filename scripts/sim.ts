@@ -5,6 +5,7 @@ import {
   CAST,
   feelTheRoom,
   hear,
+  jurorLineQuality,
   nextVote,
   openingState,
   type Argument,
@@ -20,7 +21,8 @@ const trial = JSON.parse(
 
 const LINES_BETWEEN_VOTES = 6;
 const MAX_LINES = 60;
-const JUROR_QUALITY = 0.7;
+/** Measured live: the director gives the smaller side most of the floor. */
+const MINORITY_FLOOR_SHARE = 0.6;
 
 function seeded(seed: number): () => number {
   let value = seed;
@@ -28,6 +30,14 @@ function seeded(seed: number): () => number {
     value = (value * 1664525 + 1013904223) % 2 ** 32;
     return value / 2 ** 32;
   };
+}
+
+function nextSpeaker(states: Map<number, JurorState>, random: () => number) {
+  const voting = (vote: Vote) => CAST.filter((profile) => states.get(profile.id)!.vote === vote);
+  const [guilty, notGuilty] = [voting('guilty'), voting('not_guilty')];
+  const minority = guilty.length < notGuilty.length ? guilty : notGuilty;
+  const pool = minority.length && random() < MINORITY_FLOOR_SHARE ? minority : CAST;
+  return pool[Math.floor(random() * pool.length)]!;
 }
 
 type Player = {
@@ -64,13 +74,13 @@ function play(player: Player, seed: number): { result: string; lines: number; fl
     if (line % 3 === 0 && plan.length) {
       everyoneHears({ speaker: 'human', pointIds: [plan.shift()!], quality: player.quality });
     } else {
-      const speakers = CAST.filter((profile) => states.get(profile.id)!.vote !== 'undecided');
-      const speaker = speakers[Math.floor(random() * speakers.length)]!;
-      const side = states.get(speaker.id)!.vote;
+      const speaker = nextSpeaker(states, random);
+      const { vote, belief } = states.get(speaker.id)!;
+      const side = vote === 'undecided' ? (belief < 50 ? 'not_guilty' : 'guilty') : vote;
       const points = trial.points.filter((point) => point.pushes === side);
       const pick = () => points[Math.floor(random() * points.length)]!.id;
       const pointIds = random() < 0.7 ? [pick(), pick()] : [pick()];
-      everyoneHears({ speaker: speaker.id, pointIds: [...new Set(pointIds)], quality: JUROR_QUALITY });
+      everyoneHears({ speaker: speaker.id, pointIds: [...new Set(pointIds)], quality: jurorLineQuality(vote) });
     }
 
     if (line % LINES_BETWEEN_VOTES === 0) {
@@ -102,6 +112,7 @@ const players: Player[] = [
   { name: 'strong for not guilty', side: 'not_guilty', plan: ids('not_guilty'), quality: 0.9 },
   { name: 'strong for guilty', side: 'guilty', plan: ids('guilty'), quality: 0.9 },
   { name: 'weak, repeats one point', side: 'not_guilty', plan: Array(14).fill('n7'), quality: 0.3 },
+  { name: 'silent, votes not guilty', side: 'not_guilty', plan: [], quality: 0 },
 ];
 
 const SEEDS = 200;
@@ -125,7 +136,7 @@ for (const player of players) {
   );
   if (player.name === 'strong for not guilty' && share('not_guilty') < 50) failed = true;
   if (player.name === 'strong for guilty' && share('guilty') < 50) failed = true;
-  if (player.name.startsWith('weak') && share('not_guilty') > 10) failed = true;
+  if (/^(weak|silent)/.test(player.name) && share('not_guilty') > 10) failed = true;
 }
 
 console.log('\nOne strong not-guilty game, seed 7:');

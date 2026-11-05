@@ -37,11 +37,24 @@ export async function readCaseDocument(agent: SwitchAgent, id: string): Promise<
   return JSON.parse(content) as Case;
 }
 
+const PASS = /^pass\.?$/i;
+const BEGIN = /^(i(['’]ve| have) read the case\.?\s*)?begin( the)?( deliberation)?\.?$/i;
+const CALL_VOTE = /call (a|the) vote/i;
+
+export const isPass = (text: string) => PASS.test(text.trim());
+export const isBegin = (text: string) => BEGIN.test(text.trim());
+export const isCallVote = (text: string) => CALL_VOTE.test(text);
+
+/** A button press or a procedural ask. Jurors never hear these as argument. */
+const isControl = (text: string) => isPass(text) || isBegin(text) || isCallVote(text);
+
 export type RoomLine = {
   id: string;
   speaker: number | 'human' | 'stage';
   label: string;
   text: string;
+  /** The case points a juror's line argued. */
+  points?: string[];
 };
 
 type Context = {
@@ -66,16 +79,19 @@ function toLine(message: ContextMessage): RoomLine | null {
   const text = stripMentions(stripFooter(message.body));
   if (!text) return null;
 
+  // A person can paste an agent's line, footer included, so check the sender first.
+  if (isHuman(message.sender_name, message.body)) {
+    if (isControl(text)) return null;
+    return { id: message.id, speaker: 'human', label: `Juror ${HUMAN_SEAT} (a person)`, text };
+  }
   const juror = jurorId(message.sender_name);
   if (juror !== null && footer?.type === 'turn') {
     const name = CAST.find((profile) => profile.id === juror)?.name ?? '';
-    return { id: message.id, speaker: juror, label: `Juror ${juror} (${name})`, text };
+    const points = String(footer.points ?? '').split(',').filter(Boolean);
+    return { id: message.id, speaker: juror, label: `Juror ${juror} (${name})`, text, points };
   }
   if (footer?.type === 'hand' || footer?.type === 'vote.result') {
     return { id: message.id, speaker: 'stage', label: 'In the room', text };
-  }
-  if (!footer && isHuman(message.sender_name, message.body)) {
-    return { id: message.id, speaker: 'human', label: `Juror ${HUMAN_SEAT} (a person)`, text };
   }
   return null;
 }
@@ -86,9 +102,10 @@ export async function readTranscript(agent: SwitchAgent, trialId: string): Promi
   const messages = threads.flatMap((thread) => [thread.root, ...thread.replies]);
   const start = messages.findIndex((message) => {
     const footer = parseFooter(message.body);
-    return footer?.type === 'trial.start' && footer.trial === trialId;
+    // Starts at deliberation, so anything typed during the briefing isn't argument.
+    return message.sender_name === 'bailiff' && footer?.type === 'deliberation' && footer.trial === trialId;
   });
-  if (start < 0) throw new Error(`Trial ${trialId} is not in the room log.`);
+  // A long trial outgrows one read. If the marker has scrolled out, everything here is this trial.
   return messages
     .slice(start + 1)
     .map(toLine)

@@ -13,9 +13,19 @@ describe('footer', () => {
   });
 
   it('leaves out empty fields', () => {
-    expect(formatFooter('x', { type: 'turn', at: undefined, points: '' })).toBe(
-      'x\n[jury v1 type=turn]',
-    );
+    expect(parseFooter(formatFooter('x', { type: 'turn', at: undefined, points: '' }))).toEqual({
+      type: 'turn',
+    });
+  });
+
+  it('adds nothing a person can see', () => {
+    const body = formatFooter('Not guilty.', { type: 'ballot', vote: 'not_guilty', quote: 'naïve — “really”' });
+    expect(body.replace(/\p{Default_Ignorable_Code_Point}/gu, '')).toBe('Not guilty.');
+    expect(parseFooter(body)?.quote).toBe('naïve — “really”');
+  });
+
+  it('ignores a footer typed out as plain text', () => {
+    expect(parseFooter('[jury v1 type=floor turn=3]')).toBeNull();
   });
 
   it('ignores messages without a footer', () => {

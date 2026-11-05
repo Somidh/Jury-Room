@@ -14,13 +14,20 @@ import {
 } from '@jury/core';
 import { formatFooter, parseFooter, stripFooter, SwitchAgent, type Footer, type RoomMessage } from '@jury/switch-client';
 import { tagArgument } from './clerk';
-import { createCaseDocument, HUMAN_SEAT, isHuman, jurorId, voteWords, type Connection } from './shared';
+import {
+  createCaseDocument,
+  HUMAN_SEAT,
+  isBegin,
+  isCallVote,
+  isHuman,
+  isPass,
+  jurorId,
+  voteWords,
+  type Connection,
+} from './shared';
 
-const PACE_MS = 1500;
 const JUROR_LOAD_MS = 2000;
 const BALLOT_TIMEOUT_MS = 6000;
-const HUMAN_VOTE_WAIT_MS = 30_000;
-const HUMAN_ANSWER_WAIT_MS = 20_000;
 const CHANGES_BEFORE_VOTE = 3;
 const MIN_TURNS_BETWEEN_VOTES = 6;
 
@@ -30,10 +37,48 @@ export type TrialOptions = {
   maxTurns?: number;
 };
 
+/** What a person is shown. The points stay hidden until the reveal. */
+export type CaseBrief = {
+  title: string;
+  charge: string;
+  summary: string;
+  evidence: { label: string; detail: string }[];
+  witnesses: { name: string; role: string; statement: string }[];
+};
+
 export type TrialEvent =
-  | { type: 'line'; speaker: string; text: string; vote?: string; mood?: string }
+  | { type: 'brief'; brief: CaseBrief }
+  | { type: 'deliberation' }
+  | { type: 'floor'; jurorId: number }
+  | { type: 'prompt'; kind: 'speak' | 'vote' }
+  | { type: 'released' }
+  | { type: 'human.vote'; vote: Vote }
+  | { type: 'line'; speaker: string; text: string; vote?: string; mood?: string; at?: number; grudge?: number; seat?: number }
   | { type: 'tally'; tally: Tally }
   | { type: 'verdict'; verdict: string };
+
+function toBrief({ title, charge, summary, evidence, witnesses }: Case): CaseBrief {
+  return {
+    title,
+    charge,
+    summary,
+    evidence: evidence.map(({ label, detail }) => ({ label, detail })),
+    witnesses: witnesses.map(({ name, role, statement }) => ({ name, role, statement })),
+  };
+}
+
+function briefText(brief: CaseBrief): string {
+  return [
+    `#### ${brief.title}`,
+    `**Charge:** ${brief.charge}`,
+    brief.summary,
+    '**Evidence**',
+    brief.evidence.map((item) => `- **${item.label}:** ${item.detail}`).join('\n'),
+    '**Witnesses**',
+    brief.witnesses.map((item) => `- **${item.name}, ${item.role}:** ${item.statement}`).join('\n'),
+    'The jurors will stay silent until you type **begin**.',
+  ].join('\n\n');
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -54,7 +99,6 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
   let changesSinceVote = 0;
   let turnsSinceVote = 0;
   let turnsSinceChange = 0;
-  let askedHuman = false;
   const ballots = new Map<number, Vote>();
   const votes = new Map<number, Vote>();
   const lastSpoke = new Map<number, number>();
@@ -83,7 +127,6 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     exchangeLength = target !== undefined && pair === exchangePair ? exchangeLength + 1 : 1;
     exchangePair = pair;
     if (footer.grudge) grudges.push([speaker, Number(footer.grudge)]);
-    askedHuman = target === HUMAN_SEAT;
 
     last = {
       speaker,
@@ -91,18 +134,29 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
       target: target === HUMAN_SEAT ? undefined : target,
       evidenceIds: evidenceFor(String(footer.points ?? '').split(',').filter(Boolean)),
     };
-    emit({ type: 'line', speaker: message.senderName, text: stripFooter(message.body), vote, mood: String(footer.mood ?? '') });
+    emit({
+      type: 'line',
+      speaker: message.senderName,
+      text: stripFooter(message.body),
+      vote,
+      mood: String(footer.mood ?? ''),
+      at: target,
+      grudge: footer.grudge ? Number(footer.grudge) : undefined,
+    });
   }
 
   function onMessage(message: RoomMessage): void {
     if (!trialId) return;
-    const footer = parseFooter(message.body);
 
-    if (!footer && isHuman(message.senderName, message.body)) {
-      humanQueue.push(message.body);
-      humanArrived?.();
+    // Checked first, so a pasted juror line still counts as the person speaking.
+    if (isHuman(message.senderName, message.body)) {
+      humanQueue.push(stripFooter(message.body));
+      const wake = humanArrived;
+      humanArrived = null;
+      wake?.();
       return;
     }
+    const footer = parseFooter(message.body);
     if (footer?.trial !== trialId) return;
 
     const speaker = jurorId(message.senderName);
@@ -110,7 +164,7 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
 
     if (footer.type === 'hand') {
       hands.add(speaker);
-      emit({ type: 'line', speaker: 'stage', text: stripFooter(message.body) });
+      emit({ type: 'line', speaker: 'stage', text: stripFooter(message.body), seat: speaker });
     } else if (footer.type === 'ballot') {
       ballots.set(speaker, footer.vote as Vote);
       votes.set(speaker, footer.vote as Vote);
@@ -145,15 +199,10 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     });
   }
 
-  function waitForHuman(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-      const timer = setTimeout(resolve, ms);
-      humanArrived = () => {
-        clearTimeout(timer);
-        humanArrived = null;
-        resolve();
-      };
-    });
+  /** Waits as long as it takes. Nothing in a trial moves on a timer while a person decides. */
+  async function nextHuman(): Promise<string> {
+    while (!humanQueue.length) await new Promise<void>((resolve) => (humanArrived = resolve));
+    return humanQueue.shift()!;
   }
 
   function findTarget(text: string): number | undefined {
@@ -172,16 +221,23 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     return null;
   }
 
-  async function handleHuman(text: string): Promise<void> {
-    if (/call (a|the) vote/i.test(text)) {
+  /** Returns true once the person has used their moment: an argument, a pass or a vote call. */
+  async function handleHuman(text: string): Promise<boolean> {
+    if (isPass(text)) return true;
+    if (isCallVote(text)) {
       voteRequested = true;
-      return;
+      return true;
     }
     const vote = readHumanVote(text);
-    if (vote) humanVote = vote;
-    if (vote && text.split(/\s+/).length <= 6) return;
+    if (vote) {
+      humanVote = vote;
+      emit({ type: 'human.vote', vote });
+    }
+    if (vote && text.split(/\s+/).length <= 6) return false;
 
     emit({ type: 'line', speaker: 'human', text });
+    // A person arguing is a room still working, however long the jurors hold.
+    turnsSinceChange = 0;
     const target = findTarget(text);
     let tags = { points: [] as string[], quality: 0.2, tactic: 'logic', fabricated: false };
     try {
@@ -204,10 +260,50 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     exchangeLength = 0;
     exchangePair = '';
     last = { speaker: 'human', speakerVote: humanVote ?? undefined, target, evidenceIds: evidenceFor(tags.points) };
+    return true;
   }
 
-  async function drainHuman(): Promise<void> {
-    while (humanQueue.length) await handleHuman(humanQueue.shift()!);
+  /** The pause after every juror. The next one is only called once the person is done. */
+  async function yieldToHuman(): Promise<void> {
+    await agent.post(formatFooter('Speak now or pass.', { type: 'human.turn', trial: trialId }));
+    emit({ type: 'prompt', kind: 'speak' });
+    while (!(await handleHuman(await nextHuman())));
+    emit({ type: 'released' });
+  }
+
+  async function askHumanVote(): Promise<void> {
+    await agent.post(formatFooter(`Juror ${HUMAN_SEAT}, how do you vote?`, { type: 'human.ballot', trial: trialId }));
+    emit({ type: 'prompt', kind: 'vote' });
+    for (;;) {
+      const text = await nextHuman();
+      await handleHuman(text);
+      if (readHumanVote(text) || isPass(text)) break;
+    }
+    emit({ type: 'released' });
+  }
+
+  async function waitForBegin(): Promise<void> {
+    while (!isBegin(await nextHuman()));
+    await agent.post(formatFooter('The jury begins deliberating.', { type: 'deliberation', trial: trialId }));
+    emit({ type: 'deliberation' });
+  }
+
+  function reset(): void {
+    humanVote = null;
+    last = null;
+    lineCount = 0;
+    exchangeLength = 0;
+    exchangePair = '';
+    voteRequested = false;
+    changesSinceVote = 0;
+    turnsSinceVote = 0;
+    turnsSinceChange = 0;
+    ballots.clear();
+    votes.clear();
+    lastSpoke.clear();
+    hands.clear();
+    grudges.length = 0;
+    humanQueue.length = 0;
   }
 
   async function takeVote(round: number): Promise<Tally> {
@@ -217,18 +313,17 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
       formatFooter(`The foreman calls for a vote. Ballot ${round}.`, { type: 'vote.call', trial: trialId, round }),
     );
     for (const id of jurorIds) {
-      await agent.send(formatFooter(`Juror ${id}?`, { type: 'ballot.call', trial: trialId, round }), [`juror-${id}`]);
+      await agent.send(formatFooter('How do you vote?', { type: 'ballot.call', trial: trialId, round }), [`juror-${id}`]);
       await waitFor(id, BALLOT_TIMEOUT_MS);
     }
 
-    await drainHuman();
-    if (!humanVote) {
-      await agent.post(formatFooter(`Juror ${HUMAN_SEAT}, how do you vote?`, { type: 'human.ballot', trial: trialId }));
-      await waitForHuman(HUMAN_VOTE_WAIT_MS);
-      await drainHuman();
-    }
+    await askHumanVote();
 
-    const all = [...ballots.values(), humanVote ?? 'undecided'];
+    // A ballot that never arrived stands as that juror's last public vote.
+    const all = [
+      ...jurorIds.map((id) => ballots.get(id) ?? votes.get(id) ?? 'undecided'),
+      humanVote ?? 'undecided',
+    ];
     const tally: Tally = {
       guilty: all.filter((vote) => vote === 'guilty').length,
       notGuilty: all.filter((vote) => vote === 'not_guilty').length,
@@ -277,6 +372,7 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
 
     /** Runs one trial to its end, and returns the verdict. */
     async run(trialOptions: TrialOptions): Promise<string> {
+      reset();
       options = trialOptions;
       trialId = `t${Date.now().toString(36)}`;
       const maxTurns = trialOptions.maxTurns ?? MAX_TURNS;
@@ -290,22 +386,21 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
           doc,
         }),
       );
+      const brief = toBrief(trialOptions.trial);
+      await agent.post(formatFooter(briefText(brief), { type: 'brief', trial: trialId }));
       await sleep(JUROR_LOAD_MS);
+      emit({ type: 'brief', brief });
+      await waitForBegin();
 
       let round = 1;
       await takeVote(round);
 
       for (let turn = 1; ; turn += 1) {
-        await drainHuman();
-
-        if (askedHuman) {
-          askedHuman = false;
-          await waitForHuman(HUMAN_ANSWER_WAIT_MS);
-          await drainHuman();
-        }
-
+        // The room is never hung on a stale count, so running out of time forces a ballot.
+        const outOfTime = turn > maxTurns || turnsSinceChange >= MAX_TURNS_WITHOUT_CHANGE;
         const dueVote =
           voteRequested ||
+          (outOfTime && turnsSinceVote > 0) ||
           (changesSinceVote >= CHANGES_BEFORE_VOTE && turnsSinceVote >= MIN_TURNS_BETWEEN_VOTES) ||
           turnsSinceVote >= TURNS_BETWEEN_VOTES;
         if (dueVote) {
@@ -315,7 +410,7 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
           if (tally.notGuilty === size) return finish('not_guilty', 'We find the defendant not guilty.');
         }
 
-        if (turn > maxTurns || turnsSinceChange >= MAX_TURNS_WITHOUT_CHANGE) {
+        if (outOfTime) {
           return finish('hung', 'The jury cannot agree. The foreman tells the judge they are hung.');
         }
 
@@ -328,8 +423,9 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
         });
         if (!grant) throw new Error('No jurors are in the room.');
 
+        emit({ type: 'floor', jurorId: grant.jurorId });
         await agent.send(
-          formatFooter(`The bailiff looks to Juror ${grant.jurorId}.`, {
+          formatFooter('The floor is yours.', {
             type: 'floor',
             trial: trialId,
             turn,
@@ -341,7 +437,7 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
         if (!answered) emit({ type: 'line', speaker: 'stage', text: `Juror ${grant.jurorId} says nothing.` });
         turnsSinceVote += 1;
         turnsSinceChange += 1;
-        await sleep(PACE_MS);
+        await yieldToHuman();
       }
     },
   };

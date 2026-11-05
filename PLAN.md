@@ -522,3 +522,14 @@ Found while building and testing Level 1 on Nov 5.
 | Vote after 2 changes | After 3 changes and at least 6 turns | Ballots were too frequent |
 | Social base 12, isolated at 2, bonus 2.5 | 18, 3, 3 | Stricter arguments needed a stronger cascade to stay winnable |
 | Director signals as listed | Adds +30 for a holdout | The room went flat agreeing with itself |
+| `[jury v1 ...]` footer as visible text | Same fields, in zero-width characters after the sentence | Mattermost showed them. Switch has no message metadata, and it prints Markdown and HTML comments as text |
+| `gemini-flash-lite-latest` | `gemini-3.1-flash-lite`, 6s per attempt, then the old model as fallback | Old model failed 3 of 4 calls in a benchmark, new one 0 of 4 at about 1.5s |
+| Juror lines at quality 0.7 | 0.3, halved again if the speaker is undecided | With the person silent, the room still reached 12-0. Now it hangs at 10-2 |
+| Model shift up to 5 | Up to 2 | Same: jurors drifted on their own |
+| Hung after 20 turns with no change | 30, and a person arguing resets the count | The room gave up on a person who was still reading |
+| Clerk and vote messages trusted by type | Only from the bailiff | A person could forge them |
+| Trial starts at once | Case brief first, jurors silent until you click Begin or type `begin` | You asked for time to read the case |
+| Director runs turns on its own, with short waits for you | After every juror, the bailiff waits with no time limit until you argue, pass or call a vote | You asked not to be steamrolled |
+| Your vote is asked once | Asked at every ballot, with no time limit | Same |
+| Table seen from above, feed down the side | First-person view from seat 12, down a long table, with lines as screenplay captions and the feed in a Transcript panel | You asked to feel seated in the room |
+| Portraits | Layered SVG faces that really turn their heads | They have to turn and stare at you, which flat images can't do |

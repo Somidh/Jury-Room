@@ -20,16 +20,18 @@ export type Llm = {
 
 type CompleteJson = (system: string, prompt: string) => Promise<string>;
 
-const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
+const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
 const FALLBACK_GEMINI_MODEL = 'gemini-flash-lite-latest';
 const BUSY_STATUSES = new Set([429, 500, 503]);
-const BUSY_RETRY_DELAYS_MS = [1500, 4000];
+const ATTEMPT_TIMEOUT_MS = 6000;
+const LAST_TRY_DELAY_MS = 1500;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function geminiRequest(apiKey: string, model: string, system: string, prompt: string) {
   return fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
+    signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
     headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
@@ -39,23 +41,35 @@ function geminiRequest(apiKey: string, model: string, system: string, prompt: st
   });
 }
 
-/** The free tier often answers "busy", so retry, then try the lighter model once. */
+/**
+ * The free tier often answers "busy" or hangs, and a turn can't wait long. A slow
+ * call is cut off and the next attempt tries another model, which has its own quota.
+ */
 function geminiComplete(apiKey: string, model: string): CompleteJson {
   const attempts = [
-    ...[0, ...BUSY_RETRY_DELAYS_MS].map((delay) => ({ model, delay })),
+    { model, delay: 0 },
     { model: FALLBACK_GEMINI_MODEL, delay: 0 },
+    { model, delay: LAST_TRY_DELAY_MS },
   ];
 
   return async (system, prompt) => {
     let response: Response | undefined;
+    let failure = 'no attempt finished';
     for (const attempt of attempts) {
       await sleep(attempt.delay);
-      response = await geminiRequest(apiKey, attempt.model, system, prompt);
-      if (!BUSY_STATUSES.has(response.status)) break;
+      try {
+        response = await geminiRequest(apiKey, attempt.model, system, prompt);
+        if (!BUSY_STATUSES.has(response.status)) break;
+        failure = `${attempt.model} returned ${response.status}`;
+      } catch (error) {
+        response = undefined;
+        failure = `${attempt.model}: ${(error as Error).message}`;
+      }
     }
-    if (!response?.ok) {
-      const detail = await response?.text();
-      throw new Error(`Gemini returned ${response?.status}: ${detail?.slice(0, 300)}`);
+    if (!response) throw new Error(`Gemini failed: ${failure}`);
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`Gemini returned ${response.status}: ${detail.slice(0, 300)}`);
     }
     const json = (await response.json()) as {
       candidates?: { content?: { parts?: { text?: string }[] } }[];

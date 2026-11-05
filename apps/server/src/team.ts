@@ -14,7 +14,7 @@ export const ROOM_INSTRUCTIONS = [
   'This is a jury room. Eleven agents are jurors and one person is Juror 12.',
   'The case file is a room document.',
   'Jurors speak only when the bailiff gives them the floor.',
-  'Every agent message ends with a [jury v1 ...] line, which code reads.',
+  'Every agent message ends with hidden fields, which code reads.',
   'To play from chat, just talk and use jurors\' names, without an @. To call a vote, write: call a vote.',
 ].join(' ');
 

@@ -113,7 +113,7 @@ export function pickNext(view: RoomView): Grant | null {
 }
 
 /** Hard limits, so a trial always ends. */
-export const MAX_TURNS = 60;
-export const MAX_TURNS_WITHOUT_CHANGE = 20;
+export const MAX_TURNS = 90;
+export const MAX_TURNS_WITHOUT_CHANGE = 30;
 export const TURN_TIMEOUT_MS = 25_000;
 export const TURNS_BETWEEN_VOTES = 12;

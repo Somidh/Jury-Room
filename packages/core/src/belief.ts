@@ -4,7 +4,7 @@ const FOCUS_BONUS = 1.5;
 const ADDRESSED_BONUS = 1.3;
 const GRUDGE_PENALTY = 0.6;
 const ALLY_BONUS = 1.2;
-const OWN_SHIFT_LIMIT = 5;
+const OWN_SHIFT_LIMIT = 2;
 /** A line making several points lands its best one. The rest only add a little. */
 const EXTRA_POINT_SHARE = 0.35;
 /** The furthest one point can ever move a juror, as a multiple of their max step. */
@@ -12,6 +12,13 @@ const POINT_LIFETIME_LIMIT = 1.4;
 const SOCIAL_BASE = 18;
 const ISOLATED_SIDE_SIZE = 3;
 const ISOLATION_BONUS = 3;
+/**
+ * A juror's line lands softer than a well-made argument from the person, and a juror
+ * who isn't sure persuades less still. Otherwise the room argues itself to a verdict
+ * and the person in seat 12 doesn't matter.
+ */
+const JUROR_LINE_QUALITY = 0.3;
+const UNSURE_SHARE = 0.5;
 
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
 
@@ -25,6 +32,10 @@ export function openingState(profile: JurorProfile): JurorState {
     grudges: [],
     allies: [],
   };
+}
+
+export function jurorLineQuality(vote: Vote): number {
+  return vote === 'undecided' ? JUROR_LINE_QUALITY * UNSURE_SHARE : JUROR_LINE_QUALITY;
 }
 
 /** How sure a juror is, whichever way they lean. */

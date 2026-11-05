@@ -2,6 +2,7 @@ import {
   applyOwnShift,
   feelTheRoom,
   hear,
+  jurorLineQuality,
   nextVote,
   openingState,
   type Argument,
@@ -30,6 +31,11 @@ const MAX_WORDS = 45;
 const HARD_WORD_LIMIT = 60;
 const MAX_POINTS = 2;
 const THINK_TIMEOUT_MS = 22_000;
+/** A point argued this many times in the recent transcript has stopped landing. */
+const WORN_OUT_AFTER = 3;
+const ECHO_OVERLAP = 0.6;
+const ECHO_WINDOW = 6;
+const MIN_WORD_LENGTH = 4;
 
 const Reply = z.object({
   line: z.string().min(1),
@@ -60,6 +66,16 @@ function describeBelief(belief: number): string {
 }
 
 const normalise = (text: string) => text.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+
+const contentWords = (text: string) =>
+  new Set(normalise(text).split(/\s+/).filter((word) => word.length >= MIN_WORD_LENGTH));
+
+/** Share of the shorter line's content words that also appear in the other line. */
+function overlap(a: string, b: string): number {
+  const [first, second] = [contentWords(a), contentWords(b)];
+  const shared = [...first].filter((word) => second.has(word)).length;
+  return shared / Math.max(1, Math.min(first.size, second.size));
+}
 
 function timeout<T>(work: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -106,7 +122,7 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
     heardArgument({
       speaker,
       pointIds: String(footer.points ?? '').split(',').filter(Boolean),
-      quality: 0.7,
+      quality: jurorLineQuality(footer.vote as Vote),
       tactic: footer.tactic as Tactic | undefined,
       target,
     });
@@ -134,7 +150,12 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
 
   function buildPrompt(lines: RoomLine[], pendingVote: Vote, why: string): string {
     const changing = pendingVote !== state.vote;
-    const pointList = trial!.points.map((point) => `${point.id}: ${point.claim}`).join('\n');
+    const uses = (id: string) => lines.filter((line) => line.points?.includes(id)).length;
+    const wornOut = trial!.points.filter((point) => uses(point.id) >= WORN_OUT_AFTER);
+    const pointList = trial!.points
+      .filter((point) => !wornOut.includes(point))
+      .map((point) => `${point.id}: ${point.claim}`)
+      .join('\n');
     const focus = (trial!.focus[String(profile.id)] ?? []).join(', ') || 'whatever the room is doing';
     const transcript = lines.map((line) => `${line.label}: ${line.text}`).join('\n') || '(nobody has spoken yet)';
     const said = lines.filter((line) => line.speaker === profile.id).map((line) => `- ${line.text}`).join('\n');
@@ -146,7 +167,7 @@ Your mood: ${mood}. People who've got under your skin: ${state.grudges.map((id) 
 What's been on your mind: ${reasons.slice(-3).join('; ') || 'nothing yet'}.
 What you fixate on in this case: ${focus}.`,
       changing
-        ? `YOU HAVE CHANGED YOUR MIND. Your vote is now ${voteWords[pendingVote]}. Say so now, in your own way, and say what did it. It should cost you something.`
+        ? `YOU HAVE CHANGED YOUR MIND. You are now ${voteWords[pendingVote]}. Let the room hear it in your own voice, and name the one thing that did it. It should cost you something. Talk like a person, not a form: never say "changing my vote", "moving to", or the word "undecided".`
         : `Your vote is still ${voteWords[state.vote]}. Don't say or imply anything else. ${
             why === 'addressed'
               ? 'Someone just spoke to you. Answer them directly.'
@@ -156,6 +177,9 @@ What you fixate on in this case: ${focus}.`,
           }`,
       said
         ? `YOU ALREADY SAID THESE. Don't repeat them or their argument. Say something new, go after a different fact, or get personal:\n${said}`
+        : '',
+      wornOut.length
+        ? `THE ROOM IS SICK OF THESE. Don't argue them again:\n${wornOut.map((point) => `- ${point.claim}`).join('\n')}`
         : '',
       `Reply with JSON only:
 {"line": what you say aloud, under ${MAX_WORDS} words,
@@ -172,10 +196,17 @@ ${pointList}`,
     ].filter(Boolean).join('\n\n');
   }
 
-  /** Only a line too long to say costs a retry. Free-tier calls are scarce. */
-  function validate(reply: Reply): string | null {
-    const words = reply.line.split(/\s+/).length;
-    return words > HARD_WORD_LIMIT ? `line is ${words} words, the limit is ${MAX_WORDS}` : null;
+  /** A line too long to say always fails. An echo gets one retry, then it stands. */
+  function validator(lines: RoomLine[]) {
+    const heard = lines.filter((line, index) => line.speaker === profile.id || index >= lines.length - ECHO_WINDOW);
+    let warned = false;
+    return (reply: Reply): string | null => {
+      const words = reply.line.split(/\s+/).length;
+      if (words > HARD_WORD_LIMIT) return `line is ${words} words, the limit is ${MAX_WORDS}`;
+      if (warned || !heard.some((line) => overlap(line.text, reply.line) >= ECHO_OVERLAP)) return null;
+      warned = true;
+      return 'that line repeats what was just said. Make a different argument, in different words.';
+    };
   }
 
   /** Keeps a quote only if it's really in that person's last line. */
@@ -202,7 +233,7 @@ ${pointList}`,
           })}`,
           prompt: buildPrompt(lines, pendingVote, String(footer.why)),
           schema: Reply,
-          validate,
+          validate: validator(lines),
         }),
         THINK_TIMEOUT_MS,
       );
@@ -248,9 +279,11 @@ ${pointList}`,
     if (footer.type === 'trial.start' && message.senderName === 'bailiff') return onTrialStart(footer);
     if (footer.trial !== trialId) return;
 
+    // A person can write anything into a message, so only the bailiff's records count.
+    const fromBailiff = message.senderName === 'bailiff';
     if (footer.type === 'turn') onTurn(message, footer);
-    else if (footer.type === 'clerk') onClerk(footer);
-    else if (footer.type === 'vote.result') {
+    else if (footer.type === 'clerk' && fromBailiff) onClerk(footer);
+    else if (footer.type === 'vote.result' && fromBailiff) {
       state = feelTheRoom(state, profile, {
         guilty: Number(footer.guilty),
         notGuilty: Number(footer.notGuilty),
@@ -260,7 +293,7 @@ ${pointList}`,
     }
 
     // Only the bailiff can give a juror the floor. Being tagged by anyone else isn't a turn.
-    if (message.senderName !== 'bailiff' || !message.addressed) return;
+    if (!fromBailiff || !message.addressed) return;
     if (footer.type === 'floor') await takeFloor(footer);
     else if (footer.type === 'ballot.call') await castBallot(footer);
   }

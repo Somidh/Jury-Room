@@ -15,6 +15,9 @@
     "bootstrap": "tsx --env-file=.env scripts/bootstrap.ts",
     "trial": "tsx --env-file=.env scripts/trial.ts",
     "sim": "tsx scripts/sim.ts",
+    "divergence": "tsx --env-file=.env scripts/divergence.ts",
+    "smoke": "tsx --env-file=.env scripts/smoke.ts",
+    "room": "pnpm --filter @jury/web build && tsx --env-file=.env apps/server/src/index.ts",
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck"
   },
@@ -32,6 +35,7 @@
   "dependencies": {
     "@jury/core": "workspace:*",
     "@jury/server": "workspace:*",
-    "@jury/switch-client": "workspace:*"
+    "@jury/switch-client": "workspace:*",
+    "zod": "^3.24.1"
   }
 }

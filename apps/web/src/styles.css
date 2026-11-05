@@ -1,0 +1,395 @@
+:root {
+  --walnut: #1c120c;
+  --charcoal: #120c08;
+  --oak: #3a2416;
+  --amber: #e8a33d;
+  --paper: #efe3cc;
+  --manila: #d9c7a0;
+  --guilty: #b5392b;
+  --not-guilty: #5e8c5a;
+  --undecided: #8a7f70;
+  --ink: #2a1c12;
+  --type: 'Courier Prime', 'Courier New', monospace;
+  --display: 'Gloock', Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; }
+
+body { background: var(--charcoal); color: var(--paper); font: 17px/1.5 var(--type); overflow: hidden; }
+
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; }
+
+button, textarea { font: inherit; }
+
+button {
+  background: rgb(18 12 8 / 70%);
+  border: 1px solid var(--undecided);
+  border-radius: 2px;
+  color: var(--paper);
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+button:hover:not(:disabled) { border-color: var(--paper); }
+button:disabled { cursor: default; opacity: 0.5; }
+button.primary { background: var(--amber); border-color: var(--amber); color: var(--ink); font-weight: 700; }
+button.primary:hover:not(:disabled) { background: #f4b85a; border-color: #f4b85a; }
+button.quiet { background: none; border-color: transparent; margin-left: auto; text-decoration: underline; }
+button.vote-guilty { background: var(--guilty); border-color: var(--guilty); }
+button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-guilty); color: #10180f; font-weight: 700; }
+
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.screen { height: 100%; overflow: hidden; position: relative; }
+
+.waiting-note { display: grid; height: 100%; margin: 0; padding: 1rem; place-items: center; text-align: center; }
+
+.error { color: #ff9c8f; margin: 0; }
+
+/* The stage fills the screen. The set keeps its proportions and crops at the edges,
+   which is what keeps the walls close. */
+.stage { container-type: size; inset: 0; overflow: hidden; position: absolute; }
+
+.set {
+  aspect-ratio: 16 / 9;
+  left: 50%;
+  min-height: 100cqh;
+  min-width: 100cqw;
+  position: absolute;
+  top: 0;
+  translate: -50% 0;
+  width: 100cqw;
+}
+
+.room-art, .table-art { height: 100%; inset: 0; position: absolute; width: 100%; }
+.table-art { pointer-events: none; z-index: 14; }
+
+.lamp-art { left: 50%; pointer-events: none; position: absolute; top: -3%; translate: -50% 0; width: 24%; z-index: 16; }
+
+.light-pool {
+  background:
+    radial-gradient(ellipse 32% 58% at 50% 34%, rgb(255 196 112 / 38%), transparent 72%),
+    conic-gradient(from 158deg at 50% 8%, transparent, rgb(255 190 100 / 9%) 18deg, rgb(255 190 100 / 9%) 26deg, transparent 44deg);
+  inset: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  position: absolute;
+  z-index: 15;
+}
+
+.seat {
+  --seat-size: 15%;
+  pointer-events: none;
+  position: absolute;
+  transform-origin: 50% 30%;
+  translate: 0 -30%;
+  width: calc(var(--seat-size) * var(--scale));
+  will-change: filter, transform;
+}
+
+.seat-face { pointer-events: none; width: 100%; }
+.seat-face.targeted .portrait { filter: drop-shadow(0 0 0.9rem var(--amber)); }
+
+.seat-hit {
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  height: 46%;
+  pointer-events: auto;
+  left: 24%;
+  padding: 0;
+  position: absolute;
+  top: 8%;
+  width: 52%;
+}
+.seat-hit:disabled { cursor: default; opacity: 1; pointer-events: none; }
+
+.portrait { display: block; overflow: visible; width: 100%; }
+
+.placard {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  font-size: max(0.6rem, calc(1.02cqw * var(--scale)));
+  gap: 0.12em;
+  pointer-events: none;
+  position: absolute;
+  translate: -50% -50%;
+  z-index: 20;
+}
+.place-name { color: var(--paper); line-height: 1.1; text-shadow: 0 1px 3px #000, 0 0 6px #000; }
+
+.chip-holder { display: inline-block; perspective: 300px; }
+
+.chip {
+  border: 1px solid rgb(0 0 0 / 55%);
+  border-radius: 3px;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 70%), inset 0 1px 0 rgb(255 255 255 / 18%);
+  color: #fff;
+  display: grid;
+  font-size: 0.86em;
+  font-weight: 700;
+  height: 1.85em;
+  place-items: center;
+  width: 2.5em;
+}
+.chip.guilty { background: var(--guilty); }
+.chip.not_guilty { background: var(--not-guilty); color: #10180f; }
+.chip.undecided { background: var(--undecided); color: var(--ink); }
+.chip.none { background: #2a1d14; }
+
+.dimmer { background: #080402; inset: 0; pointer-events: none; position: absolute; }
+
+.tension {
+  background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 35%, rgb(150 18 8 / 62%) 100%);
+  inset: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  position: absolute;
+}
+
+.vignette {
+  background: radial-gradient(ellipse 82% 84% at 50% 44%, transparent 52%, rgb(5 2 1 / 46%) 80%, rgb(5 2 1 / 92%) 100%);
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Film grain. Stepping the position keeps it from sliding like a texture. */
+.grain {
+  animation: grain 0.9s steps(6) infinite;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.92 0 0 0 0 0.8 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  inset: -60px;
+  mix-blend-mode: overlay;
+  opacity: 0.2;
+  pointer-events: none;
+  position: absolute;
+  z-index: 60;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-22px, 14px); }
+  40% { transform: translate(18px, -24px); }
+  60% { transform: translate(-12px, -10px); }
+  80% { transform: translate(26px, 20px); }
+  100% { transform: translate(-6px, 8px); }
+}
+
+/* The case file sits on top of the frozen room. */
+.briefing { inset: 0; overflow-y: auto; padding: clamp(1rem, 5vh, 3rem) 1rem 0; position: absolute; z-index: 40; }
+
+.file {
+  background: linear-gradient(176deg, #efe3cc, #e4d4b4);
+  box-shadow: 0 2rem 5rem rgb(0 0 0 / 80%), 0 0 0 1px rgb(0 0 0 / 40%);
+  color: var(--ink);
+  margin: 0 auto;
+  max-width: 44rem;
+  padding: clamp(1.5rem, 5vw, 3.5rem);
+  position: relative;
+  rotate: -0.35deg;
+}
+.file h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); line-height: 1.05; }
+.file h2 { font-size: 1.5rem; margin-top: 2rem; }
+.file .charge { color: #8f2a1f; font-weight: 700; margin-top: 0.4rem; }
+.file dl { margin: 0.6rem 0 0; }
+.file dl div { margin-top: 1rem; }
+.file dt { font-weight: 700; }
+.file dd { margin: 0; }
+
+.stamp {
+  border: 3px solid rgb(143 42 31 / 60%);
+  color: rgb(143 42 31 / 60%);
+  font: 1.15rem var(--display);
+  margin: 0;
+  padding: 0.1rem 0.7rem;
+  position: absolute;
+  right: 1.75rem;
+  rotate: 7deg;
+  top: 1.5rem;
+}
+
+.briefing-end { display: grid; gap: 0.9rem; justify-items: center; padding: 2.5rem 0 3.5rem; text-align: center; }
+.briefing-end p { margin: 0; }
+.briefing-end button { font-size: 1.05rem; padding: 0.85rem 1.5rem; }
+
+/* The tally is always there, across the top of the room. */
+.tally {
+  align-items: center;
+  background: linear-gradient(to bottom, rgb(8 4 2 / 88%), transparent);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  inset: 0 0 auto;
+  padding: 0.7rem clamp(1rem, 4vw, 3rem) 1.4rem;
+  position: absolute;
+  z-index: 30;
+}
+.tally-side { font-size: 0.95rem; white-space: nowrap; }
+.tally-side b { font: 1.9rem/1 var(--display); vertical-align: -0.2rem; }
+.guilty-side { color: #ec8272; }
+.not-guilty-side { color: #a1cf9c; }
+
+.tally-bar {
+  background: #2c2118;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 60%);
+  display: flex;
+  height: 0.7rem;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+.tally-bar::after { background: var(--paper); content: ''; inset: -2px auto -2px 50%; opacity: 0.55; position: absolute; width: 2px; }
+.fill { display: block; height: 100%; }
+.guilty-fill { background: var(--guilty); box-shadow: 0 0 1rem var(--guilty); }
+.not-guilty-fill { background: var(--not-guilty); box-shadow: 0 0 1rem var(--not-guilty); }
+
+.room-tools {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  position: absolute;
+  right: clamp(1rem, 4vw, 3rem);
+  top: 3.5rem;
+  z-index: 31;
+}
+.room-tools button { font-size: 0.8rem; padding: 0.2rem 0.55rem; }
+.my-vote { align-items: center; display: inline-flex; font-size: 0.8rem; gap: 0.35rem; margin-right: 0.4rem; }
+
+.foreground {
+  align-items: center;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  inset-inline: 0;
+  padding: 0 1rem 1.1rem;
+  pointer-events: none;
+  position: absolute;
+  z-index: 32;
+}
+.foreground > * { pointer-events: auto; }
+
+/* The line reads as a page of screenplay, laid over the near end of the table. */
+.caption {
+  background: radial-gradient(closest-side, rgb(6 3 1 / 94%) 62%, transparent 100%);
+  margin: 0;
+  max-width: 42rem;
+  padding: 1.3rem 4.5rem 1.4rem;
+  text-shadow: 0 1px 3px #000;
+  width: 100%;
+}
+.caption figcaption { letter-spacing: 0.04em; text-align: center; }
+.caption p { margin: 0; }
+.parenthetical { font-size: 0.9rem; opacity: 0.72; text-align: center; }
+.dialogue { font-size: 1.1rem; line-height: 1.4; }
+.unsaid { visibility: hidden; }
+
+.floor-note { font-style: italic; margin: 0 0 1rem; text-shadow: 0 1px 4px #000; }
+
+/* The moment the room is waiting for you. */
+.dock {
+  background: rgb(14 8 5 / 92%);
+  border: 1px solid var(--amber);
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 54rem;
+  padding: 0.8rem 1rem 0.9rem;
+  width: 100%;
+}
+.dock.waiting { animation: wait-glow 2.6s ease-in-out infinite; }
+@keyframes wait-glow {
+  0%, 100% { box-shadow: 0 0 1.2rem rgb(232 163 61 / 28%); }
+  50% { box-shadow: 0 0 3rem rgb(232 163 61 / 62%); }
+}
+.dock h2 { color: var(--amber); font-size: 1.45rem; white-space: nowrap; }
+.dock-head { align-items: center; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; }
+.address { display: flex; flex: 1; flex-wrap: wrap; gap: 0.25rem; min-width: 0; }
+.address button { border-color: rgb(138 127 112 / 55%); font-size: 0.74rem; padding: 0.05rem 0.4rem; }
+.address button[aria-pressed='true'] { background: var(--amber); border-color: var(--amber); color: var(--ink); font-weight: 700; }
+
+.dock-input { display: flex; gap: 0.5rem; }
+.dock textarea {
+  background: rgb(0 0 0 / 40%);
+  border: 1px solid var(--undecided);
+  border-radius: 2px;
+  color: var(--paper);
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.65rem;
+  resize: none;
+}
+.dock textarea::placeholder { color: #b8ad9d; }
+.mic.listening { border-color: var(--guilty); color: #ff9c8f; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* Side sheets for what you may need to look back at. */
+.sheet {
+  background: rgb(14 8 5 / 97%);
+  bottom: 0;
+  overflow-y: auto;
+  padding: 1rem;
+  position: absolute;
+  top: 0;
+  width: min(32rem, 100%);
+  z-index: 45;
+}
+.transcript { right: 0; }
+.case-sheet { left: 0; width: min(38rem, 100%); }
+.case-sheet .file { font-size: 15px; padding: 1.5rem; rotate: none; }
+.sheet-close { display: block; font-size: 0.85rem; margin: 0 0 0.75rem auto; padding: 0.2rem 0.6rem; }
+.transcript h2 { font-size: 1.5rem; }
+.transcript ol { list-style: none; margin: 0.75rem 0 0; padding: 0; }
+.transcript li { margin-bottom: 0.9rem; }
+.transcript li b { display: block; font-weight: 400; text-align: center; }
+.transcript .ballot-note { font-size: 0.88rem; margin-bottom: 0.1rem; opacity: 0.72; }
+.transcript .ballot-note b { display: inline; }
+.transcript .stage-note { font-style: italic; opacity: 0.66; }
+
+/* The verdict: the lamp goes out and one word is left. */
+.verdict {
+  align-items: center;
+  background: rgb(5 2 1 / 94%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: absolute;
+  text-align: center;
+  z-index: 50;
+}
+.verdict p { font-size: 1.1rem; margin: 0; }
+.verdict h1 { font-size: clamp(3.5rem, 14vw, 9rem); line-height: 1; }
+.verdict h1.guilty { color: #d9503f; }
+.verdict h1.not_guilty { color: #9dc998; }
+.verdict h1.hung { color: var(--paper); }
+
+/* Your controls move aside for an open sheet, rather than going underneath it. */
+@media (min-width: 1100px) {
+  .foreground.beside-transcript { padding-right: 33rem; }
+  .foreground.beside-case { padding-left: 39rem; }
+}
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .set { aspect-ratio: 4 / 5; }
+  .seat { --seat-size: 24%; }
+  .tally { gap: 0.5rem; padding-inline: 0.75rem; }
+  .tally-side { font-size: 0.78rem; }
+  .tally-side b { font-size: 1.4rem; }
+  .room-tools { justify-content: space-between; left: 0.75rem; right: 0.75rem; top: 3.1rem; }
+  .caption { padding: 0.5rem 1rem; }
+  .dialogue { font-size: 1rem; }
+  .address { flex-wrap: nowrap; overflow-x: auto; }
+  .address button { flex: none; }
+  .dock h2 { font-size: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain, .dock.waiting { animation: none; }
+  .dock.waiting { box-shadow: 0 0 2rem rgb(232 163 61 / 45%); }
+}

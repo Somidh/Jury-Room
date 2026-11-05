@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { applyOwnShift, feelTheRoom, hear, nextVote, openingState } from './belief';
+import { applyOwnShift, feelTheRoom, hear, jurorLineQuality, nextVote, openingState } from './belief';
 import { CAST } from './cast';
 import { pickNext, type Candidate, type RoomView } from './director';
 import type { Case } from './types';
@@ -116,9 +116,16 @@ describe('hearing arguments', () => {
     );
   });
 
-  it('limits the model reassessment by stubbornness', () => {
+  it('keeps the model reassessment small, so a juror cannot talk themselves round', () => {
     const state = openingState(juror(10));
-    expect(applyOwnShift(state, juror(10), -10).belief).toBe(state.belief - juror(10).maxStep);
+    expect(applyOwnShift(state, juror(10), -10).belief).toBe(state.belief - 2);
+  });
+
+  it('lets a juror persuade less than a good argument from the person', () => {
+    const moved = (quality: number) =>
+      juror(6).openingBelief - hear(openingState(juror(6)), juror(6), { speaker: 'human', pointIds: ['n7'], quality }, trial).belief;
+    expect(moved(jurorLineQuality('not_guilty'))).toBeLessThan(moved(0.9) / 2);
+    expect(jurorLineQuality('undecided')).toBeLessThan(jurorLineQuality('not_guilty'));
   });
 });
 
