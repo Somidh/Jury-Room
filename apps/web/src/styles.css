@@ -41,7 +41,7 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
 
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
-.screen { height: 100%; overflow: hidden; position: relative; }
+.screen { height: 100%; overflow: clip; position: relative; }
 
 .waiting-note { display: grid; height: 100%; margin: 0; padding: 1rem; place-items: center; text-align: center; }
 
@@ -348,25 +348,54 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
 .transcript .ballot-note b { display: inline; }
 .transcript .stage-note { font-style: italic; opacity: 0.66; }
 
-/* The verdict: the lamp goes out and one word is left. */
-.verdict {
-  align-items: center;
-  background: rgb(5 2 1 / 94%);
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  inset: 0;
-  justify-content: center;
-  padding: 1rem;
-  position: absolute;
-  text-align: center;
-  z-index: 50;
-}
-.verdict p { font-size: 1.1rem; margin: 0; }
-.verdict h1 { font-size: clamp(3.5rem, 14vw, 9rem); line-height: 1; }
-.verdict h1.guilty { color: #d9503f; }
-.verdict h1.not_guilty { color: #9dc998; }
-.verdict h1.hung { color: var(--paper); }
+/* The ending: the lamp goes out. It reads like the last pages of a script. */
+.ending { background: rgb(5 2 1 / 96%); inset: 0; overflow-y: auto; position: absolute; z-index: 50; }
+
+.beat { margin: 0 auto; max-width: 42rem; padding: clamp(2rem, 8vh, 4.5rem) 1.25rem 4rem; }
+.beat p { margin: 0 0 0.9rem; }
+.beat h3 { font: 1.35rem var(--display); margin: 2.2rem 0 0.5rem; }
+.beat .aside { margin: 1.1rem 0 0.3rem; opacity: 0.72; }
+.beat ul { margin: 0 0 1rem; padding-left: 1.2rem; }
+.beat blockquote { border-left: 2px solid var(--undecided); margin: 0.4rem 0 0.7rem; padding-left: 0.9rem; }
+.beat .primary { margin-top: 1.4rem; }
+
+.verdict-beat { text-align: center; }
+.verdict-beat > p { font-size: 1.1rem; margin-top: 8vh; }
+.verdict-beat h1 { font-size: clamp(3.5rem, 13vw, 8.5rem); line-height: 1; margin-bottom: 1.8rem; }
+.verdict-beat h1.guilty { color: #d9503f; }
+.verdict-beat h1.not_guilty { color: #9dc998; }
+.verdict-beat h1.hung { color: var(--paper); }
+.reading { text-align: left; }
+.reading h2 { color: var(--amber); font-size: 1.6rem; line-height: 1.2; margin: 0.4rem 0 0.7rem; }
+.reading .count { opacity: 0.72; text-align: center; }
+
+.beat-title { color: var(--amber); font-size: 1.5rem; }
+.influence-beat .headline { font: clamp(2rem, 6vw, 3.2rem)/1.1 var(--display); margin: 0.3rem 0 1.4rem; }
+
+.faces { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(4.4rem, 1fr)); list-style: none; margin: 0 0 1.6rem; padding: 0; }
+.faces li { filter: brightness(0.32) saturate(0.5); font-size: 0.78rem; text-align: center; }
+.faces li.shaken { filter: brightness(0.62) saturate(0.8); }
+.faces li.swayed { filter: none; }
+.faces li.swayed span { color: var(--amber); font-weight: 700; }
+.faces span { display: block; margin-top: 0.1rem; }
+
+.sway { margin: 0 0 1.1rem; }
+.sway figcaption { font-size: 0.92rem; opacity: 0.8; }
+.sway blockquote { border-left-color: var(--amber); }
+
+.basis { display: grid; gap: 0.4rem; grid-template-columns: repeat(4, 1fr); margin: 0.6rem 0 1rem; }
+.basis div { border-top: 1px solid var(--undecided); padding-top: 0.25rem; }
+.basis dt { font-size: 0.85rem; opacity: 0.75; }
+.basis dd { font: 1.9rem var(--display); margin: 0; }
+
+.threshold-beat { display: grid; font-size: 1.2rem; justify-items: center; min-height: 100vh; place-content: center; text-align: center; }
+.threshold-beat .actions { justify-content: center; margin-top: 1.5rem; }
+.threshold-beat .actions .primary { margin-top: 0; }
+
+.reveal-beat { cursor: default; font-size: 1.22rem; line-height: 1.6; min-height: 100vh; padding-top: 14vh; }
+.reveal-beat p { margin-bottom: 1.5rem; }
+.closing-beat { display: grid; justify-items: center; min-height: 100vh; place-content: center; text-align: center; }
+.closing { color: var(--amber); font: clamp(1.7rem, 4.4vw, 2.6rem)/1.28 var(--display); margin: 0; }
 
 /* Your controls move aside for an open sheet, rather than going underneath it. */
 @media (min-width: 1100px) {

@@ -50,6 +50,7 @@ export async function openCourt({ jurorIds = CAST.map((juror) => juror.id), onEv
   return {
     human,
     jurorIds,
+    truth: trial.truth,
     runTrial: (maxTurns?: number) => bailiff.run({ trial, jurorIds, maxTurns }),
   };
 }

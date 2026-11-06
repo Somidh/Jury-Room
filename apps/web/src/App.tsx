@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { setHeartbeat, setMuted, startAudio } from './audio';
+import { Ending } from './Ending';
 import { Stage, VoteChip, type Juror } from './Stage';
 import { seatOf, typingSpeed, type CaseBrief, type Line, type TrialView } from './trial';
 import { useTrial } from './useTrial';
@@ -272,34 +273,6 @@ function Dock({ view, jurors, target, setTarget }: {
   return null;
 }
 
-function Verdict({ view }: { view: TrialView }) {
-  const unanimous = view.verdict === 'guilty' || view.verdict === 'not_guilty';
-  return (
-    <motion.section className="verdict" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2.2 }}>
-      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6, duration: 1 }}>
-        {unanimous ? 'We, the jury, find the defendant' : 'Eleven strangers and you could not agree.'}
-      </motion.p>
-      <motion.h1
-        className={view.verdict ?? ''}
-        initial={{ opacity: 0, scale: 1.25 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 3.1, duration: 0.5, ease: 'easeOut' }}
-      >
-        {view.verdict === 'guilty' ? 'Guilty' : view.verdict === 'not_guilty' ? 'Not guilty' : 'Hung jury'}
-      </motion.h1>
-      <motion.button
-        className="primary"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 4.6 }}
-        onClick={() => void fetch('/api/trial', { method: 'POST' })}
-      >
-        Start another trial
-      </motion.button>
-    </motion.section>
-  );
-}
-
 function Transcript({ view, jurors, onClose }: { view: TrialView; jurors: Juror[]; onClose: () => void }) {
   const end = useRef<HTMLLIElement>(null);
   // Braces matter: scrollIntoView can return a promise, and React would call it as a cleanup.
@@ -413,7 +386,7 @@ export function App() {
         )}
         <AnimatePresence>{view.phase === 'briefing' && view.brief && <Briefing key="brief" brief={view.brief} />}</AnimatePresence>
         {(view.phase === 'deliberating' || view.phase === 'over') && <Room view={view} jurors={jurors} target={target} setTarget={setTarget} />}
-        {view.phase === 'over' && <Verdict view={view} />}
+        {view.phase === 'over' && view.verdict && <Ending verdict={view.verdict} debrief={view.debrief} jurors={jurors} />}
         <div className="grain" aria-hidden="true" />
       </div>
     </MotionConfig>

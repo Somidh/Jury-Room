@@ -12,6 +12,24 @@ export type CaseBrief = {
 
 type Tally = { guilty: number; notGuilty: number; undecided: number };
 
+type Quote = { name: string; text: string };
+
+export type Debrief = {
+  verdict: string;
+  tally: Tally;
+  evidence: { standing: string; headline: string; reason: string; raised: number; total: number; unraised: string[] };
+  deliberation: { headline: string; evidence: number; emotion: number; pressure: number; bias: number };
+  influence: {
+    swayed: { juror: number; name: string; from: Vote; to: Vote; quote: string | null }[];
+    shaken: { juror: number; name: string }[];
+    movedByOthers: { juror: number; name: string; by: string }[];
+    arguments: number;
+    strongest: { text: string; jurorsMoved: number } | null;
+    unsupported: number;
+  };
+  room: { emotional: Quote[]; biased: Quote[] };
+};
+
 export type TrialEvent =
   | { type: 'reset' }
   | { type: 'live' }
@@ -23,7 +41,8 @@ export type TrialEvent =
   | { type: 'human.vote'; vote: Vote }
   | { type: 'line'; speaker: string; text: string; vote?: Vote; mood?: string; at?: number; grudge?: number; seat?: number }
   | { type: 'tally'; tally: Tally }
-  | { type: 'verdict'; verdict: string };
+  | { type: 'verdict'; verdict: string }
+  | { type: 'debrief'; debrief: Debrief };
 
 export type Line = { id: number; speaker: string; text: string; mood?: string; ballot: boolean };
 
@@ -46,6 +65,7 @@ export type TrialView = {
   /** From 0 to 1, how hot the room is. Rises on clashes and flips, cools on every line. */
   heat: number;
   verdict: string | null;
+  debrief: Debrief | null;
 };
 
 export const emptyTrial: TrialView = {
@@ -62,6 +82,7 @@ export const emptyTrial: TrialView = {
   prompt: null,
   heat: 0,
   verdict: null,
+  debrief: null,
 };
 
 const BALLOT_WORDS = new Set(['Guilty.', 'Not guilty.', "I can't say yet."]);
@@ -102,6 +123,8 @@ export function applyEvent(view: TrialView, event: TrialEvent): TrialView {
       return { ...view, speaker: null };
     case 'verdict':
       return { ...view, phase: 'over', verdict: event.verdict, prompt: null, speaker: null, caption: null };
+    case 'debrief':
+      return { ...view, debrief: event.debrief };
     case 'line': {
       const seat = seatOf(event.speaker);
       const line: Line = {

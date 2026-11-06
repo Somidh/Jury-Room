@@ -18,7 +18,18 @@ export type Point = {
   pushes: 'guilty' | 'not_guilty';
   weight: number;
   tactic: Tactic;
+  /** Rests on who the defendant is, not on what happened. */
+  prejudicial?: boolean;
 };
+
+/** What the evidence presented supports, written by the case's author. */
+export type CaseRecord = { supports: 'guilty' | 'not_guilty'; reason: string };
+
+/**
+ * What really happened. Written by the case's author for consistency and for the optional
+ * reveal. No agent ever receives it and nothing is ever scored against it.
+ */
+export type CaseTruth = { beats: string[]; closing: string };
 
 export type Case = {
   id: string;
@@ -30,6 +41,8 @@ export type Case = {
   points: Point[];
   /** Juror id to the evidence or witness ids they fixate on. */
   focus: Record<string, string[]>;
+  record: CaseRecord;
+  truth: CaseTruth;
 };
 
 export type JurorProfile = {
@@ -67,6 +80,8 @@ export type Argument = {
   /** The juror this was aimed at, if any. */
   target?: number;
   fabricated?: boolean;
+  /** Which of the person's arguments this was, so its effect can be credited later. */
+  arg?: string;
 };
 
 export type Tally = { guilty: number; notGuilty: number; undecided: number };

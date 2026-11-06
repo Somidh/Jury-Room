@@ -1,4 +1,5 @@
 import {
+  buildDebrief,
   CAST,
   MAX_TURNS,
   MAX_TURNS_WITHOUT_CHANGE,
@@ -7,9 +8,15 @@ import {
   TURNS_BETWEEN_VOTES,
   type Candidate,
   type Case,
+  type Debrief,
   type LastLine,
+  type Ledger,
+  type LineBasis,
   type Llm,
+  type PersonArgument,
+  type SpokenLine,
   type Tally,
+  type Verdict,
   type Vote,
 } from '@jury/core';
 import { formatFooter, parseFooter, stripFooter, SwitchAgent, type Footer, type RoomMessage } from '@jury/switch-client';
@@ -28,6 +35,8 @@ import {
 
 const JUROR_LOAD_MS = 2000;
 const BALLOT_TIMEOUT_MS = 6000;
+const LEDGER_WAIT_MS = 5000;
+const LEDGER_POLL_MS = 100;
 const CHANGES_BEFORE_VOTE = 3;
 const MIN_TURNS_BETWEEN_VOTES = 6;
 
@@ -55,7 +64,8 @@ export type TrialEvent =
   | { type: 'human.vote'; vote: Vote }
   | { type: 'line'; speaker: string; text: string; vote?: string; mood?: string; at?: number; grudge?: number; seat?: number }
   | { type: 'tally'; tally: Tally }
-  | { type: 'verdict'; verdict: string };
+  | { type: 'verdict'; verdict: string }
+  | { type: 'debrief'; debrief: Debrief };
 
 function toBrief({ title, charge, summary, evidence, witnesses }: Case): CaseBrief {
   return {
@@ -105,6 +115,10 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
   const hands = new Set<number>();
   const grudges: [number, number][] = [];
   const humanQueue: string[] = [];
+  const spoken: SpokenLine[] = [];
+  const humanArguments: PersonArgument[] = [];
+  const ledgers = new Map<number, Ledger>();
+  let lastTally: Tally = { guilty: 0, notGuilty: 0, undecided: 0 };
 
   const evidenceFor = (points: string[]) =>
     points
@@ -127,6 +141,13 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     exchangeLength = target !== undefined && pair === exchangePair ? exchangeLength + 1 : 1;
     exchangePair = pair;
     if (footer.grudge) grudges.push([speaker, Number(footer.grudge)]);
+    spoken.push({
+      juror: speaker,
+      text: stripFooter(message.body),
+      vote,
+      points: String(footer.points ?? '').split(',').filter(Boolean),
+      basis: (footer.basis as LineBasis | undefined) ?? 'evidence',
+    });
 
     last = {
       speaker,
@@ -169,6 +190,9 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
       ballots.set(speaker, footer.vote as Vote);
       votes.set(speaker, footer.vote as Vote);
       emit({ type: 'line', speaker: message.senderName, text: stripFooter(message.body), vote: String(footer.vote) });
+    } else if (footer.type === 'ledger') {
+      ledgers.set(speaker, JSON.parse(String(footer.data)) as Ledger);
+      return;
     } else if (footer.type === 'turn') {
       onJurorTurn(speaker, message, footer);
     } else if (footer.type === 'pass') {
@@ -245,10 +269,13 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     } catch (error) {
       connection.log?.(`[bailiff] clerk failed: ${(error as Error).message}`);
     }
+    const arg = String(humanArguments.length + 1);
+    humanArguments.push({ id: arg, text, points: tags.points, fabricated: tags.fabricated });
     await agent.post(
       formatFooter(tags.fabricated ? 'The clerk notes that is not in the record.' : 'The clerk notes it for the record.', {
         type: 'clerk',
         trial: trialId,
+        arg,
         points: tags.points.join(','),
         quality: tags.quality,
         tactic: tags.tactic,
@@ -304,6 +331,9 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     hands.clear();
     grudges.length = 0;
     humanQueue.length = 0;
+    spoken.length = 0;
+    humanArguments.length = 0;
+    ledgers.clear();
   }
 
   async function takeVote(round: number): Promise<Tally> {
@@ -340,6 +370,7 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
       }),
     );
     emit({ type: 'tally', tally });
+    lastTally = tally;
     changesSinceVote = 0;
     turnsSinceVote = 0;
     voteRequested = false;
@@ -361,9 +392,33 @@ export function createBailiff(connection: Connection, llm: Llm, emit: (event: Tr
     });
   }
 
-  async function finish(verdict: string, text: string): Promise<string> {
+  /** Asks every juror for their private account, now the trial is over. */
+  async function collectLedgers(): Promise<void> {
+    await agent.post(formatFooter('The jury is dismissed.', { type: 'debrief.call', trial: trialId }));
+    const deadline = Date.now() + LEDGER_WAIT_MS;
+    while (ledgers.size < options!.jurorIds.length && Date.now() < deadline) await sleep(LEDGER_POLL_MS);
+  }
+
+  async function finish(verdict: Verdict, text: string): Promise<string> {
     await agent.post(formatFooter(text, { type: 'verdict', trial: trialId, verdict }));
     emit({ type: 'verdict', verdict });
+
+    await collectLedgers();
+    const debrief = buildDebrief({
+      trial: options!.trial,
+      verdict,
+      tally: lastTally,
+      lines: spoken,
+      arguments: humanArguments,
+      ledgers: [...ledgers.values()],
+    });
+    emit({ type: 'debrief', debrief });
+    await agent.post(
+      formatFooter(`${debrief.evidence.headline} You swayed ${debrief.influence.swayed.length} of ${options!.jurorIds.length} jurors.`, {
+        type: 'debrief',
+        trial: trialId,
+      }),
+    );
     return verdict;
   }
 

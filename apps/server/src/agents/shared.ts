@@ -21,11 +21,13 @@ export function jurorId(senderName: string): number | null {
 
 export async function createCaseDocument(agent: SwitchAgent, trialId: string, trial: Case) {
   // Points stay in the file: jurors tag their lines against them, and players never see it.
+  // The truth and the assessment of the record never enter the room.
+  const { truth: _truth, record: _record, ...shared } = trial;
   const { document_id: id } = await agent.op<{ document_id: string }>('create_room_document', {
     name: `case-${trialId}`,
     description: trial.title,
     instructions: `JSON. The case file for trial ${trialId}.`,
-    content: JSON.stringify(trial),
+    content: JSON.stringify(shared),
   });
   return id;
 }

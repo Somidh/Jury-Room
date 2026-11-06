@@ -44,6 +44,13 @@ const court = await openCourt({
       console.log(`\n=== TALLY  guilty ${guilty} / not guilty ${notGuilty} / undecided ${undecided} ===`);
     } else if (event.type === 'verdict') {
       console.log(`\n=== VERDICT: ${event.verdict} ===`);
+    } else if (event.type === 'debrief') {
+      const { evidence, deliberation, influence } = event.debrief;
+      console.log(`\n${evidence.headline}\n${evidence.reason}`);
+      console.log(`${evidence.raised} of ${evidence.total} points raised. ${deliberation.headline}`);
+      console.log(`You swayed: ${influence.swayed.map((sway) => sway.name).join(', ') || 'nobody'}`);
+      console.log(`Moved by others: ${influence.movedByOthers.map((item) => `${item.name} (${item.by})`).join(', ') || 'nobody'}`);
+      if (influence.strongest) console.log(`Your strongest argument (${influence.strongest.jurorsMoved} jurors): ${influence.strongest.text}`);
     } else if (event.type === 'brief') {
       console.log(`\n${event.brief.title}. The jurors are silent. ${scripted ? '' : `Type "begin" in #${ROOM_NAME}.`}`);
       if (scripted) say('I have read the case. Begin deliberation.');

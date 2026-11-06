@@ -533,3 +533,5 @@ Found while building and testing Level 1 on Nov 5.
 | Your vote is asked once | Asked at every ballot, with no time limit | Same |
 | Table seen from above, feed down the side | First-person view from seat 12, down a long table, with lines as screenplay captions and the feed in a Transcript panel | You asked to feel seated in the room |
 | Portraits | Layered SVG faces that really turn their heads | They have to turn and stare at you, which flat images can't do |
+| Reveal cards scored the player against the evidence | Three beats: the verdict against the evidence presented, your influence, then an optional truth that scores nothing | You asked for no right or wrong answer. A jury decides on evidence, not on a hidden truth |
+| Case file had no truth | `cases/*.json` adds `record` (what the evidence supports) and `truth`. Neither reaches any agent, and `truth` isn't an input to the debrief | Same |

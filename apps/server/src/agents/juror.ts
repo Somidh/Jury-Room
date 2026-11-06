@@ -9,7 +9,10 @@ import {
   type Case,
   type JurorProfile,
   type JurorState,
+  type Ledger,
+  type LineBasis,
   type Llm,
+  type Moved,
   type Tactic,
   type Vote,
 } from '@jury/core';
@@ -27,6 +30,7 @@ import {
 } from './shared';
 
 const TACTICS = ['logic', 'evidence', 'social', 'emotional', 'fatigue'] as const;
+const BASES = ['evidence', 'emotion', 'pressure', 'bias'] as const satisfies readonly LineBasis[];
 const MAX_WORDS = 45;
 const HARD_WORD_LIMIT = 60;
 const MAX_POINTS = 2;
@@ -43,6 +47,7 @@ const Reply = z.object({
   quote: z.string().nullable(),
   points: z.array(z.string()),
   tactic: z.enum(TACTICS),
+  basis: z.enum(BASES).catch('evidence'),
   mood: z.string(),
   shift: z.number(),
   shiftReason: z.string(),
@@ -95,6 +100,9 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
   let state: JurorState = openingState(profile);
   let mood = 'settled';
   let handRaised = false;
+  let openingVote: Vote = state.vote;
+  let moved: Moved = { person: 0, jurors: 0, room: 0, self: 0 };
+  let byArgument: Record<string, number> = {};
   const reasons: string[] = [];
   const log = (line: string) => connection.log?.(`[${name}] ${line}`);
 
@@ -108,7 +116,15 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
 
   function heardArgument(argument: Argument): void {
     if (!trial) return;
+    const before = state.belief;
     state = hear(state, profile, argument, trial);
+    const change = state.belief - before;
+    if (argument.speaker === 'human') {
+      moved.person += change;
+      if (argument.arg) byArgument[argument.arg] = (byArgument[argument.arg] ?? 0) + change;
+    } else {
+      moved.jurors += change;
+    }
     raiseHandIfMoved();
   }
 
@@ -136,6 +152,7 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
       tactic: footer.tactic as Tactic | undefined,
       target: footer.target ? Number(footer.target) : undefined,
       fabricated: footer.fabricated === 'true',
+      arg: footer.arg ? String(footer.arg) : undefined,
     });
   }
 
@@ -144,6 +161,9 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
     state = openingState(profile);
     mood = 'settled';
     handRaised = false;
+    openingVote = state.vote;
+    moved = { person: 0, jurors: 0, room: 0, self: 0 };
+    byArgument = {};
     reasons.length = 0;
     trial = await readCaseDocument(agent, String(footer.doc));
   }
@@ -187,6 +207,7 @@ What you fixate on in this case: ${focus}.`,
  "quote": if addressedTo is set, a short phrase copied word for word from that person's most recent line, else null,
  "points": the one or two ids below that your line actually argues, or [],
  "tactic": one of ${TACTICS.join(', ')},
+ "basis": what your line really rests on, honestly, whatever you'd claim aloud: "evidence" for facts in the case, "emotion" for feeling, "pressure" for pushing people or the clock, "bias" for who he is or where he's from,
  "mood": one word,
  "shift": how this moment changed your mind, -5 toward innocent to +5 toward guilty, usually 0,
  "shiftReason": a few private words on why,
@@ -239,7 +260,9 @@ ${pointList}`,
       );
 
       const replyTo = lines.filter((line) => line.speaker !== profile.id).at(-1)?.id;
+      const before = state.belief;
       state = applyOwnShift({ ...state, vote: pendingVote }, profile, reply.shift);
+      moved.self += state.belief - before;
       mood = reply.mood;
       handRaised = false;
       reasons.push(reply.shiftReason);
@@ -254,6 +277,7 @@ ${pointList}`,
           at: reply.addressedTo ?? undefined,
           points: points.slice(0, MAX_POINTS).join(','),
           tactic: reply.tactic,
+          basis: reply.basis,
           grudge: reply.grudge ?? undefined,
           quote: verifiedQuote(reply, lines),
           replyto: replyTo,
@@ -264,6 +288,14 @@ ${pointList}`,
       log(`passing: ${(error as Error).message}`);
       await agent.post(formatFooter(`Juror ${profile.id} says nothing.`, { type: 'pass', ...fields }));
     }
+  }
+
+  /** The only time a juror's private account leaves their agent, and only after the verdict. */
+  async function reportLedger(): Promise<void> {
+    const ledger: Ledger = { juror: profile.id, openingVote, finalVote: state.vote, moved, byArgument };
+    await agent.post(
+      formatFooter(`Juror ${profile.id} gathers their things.`, { type: 'ledger', trial: trialId, data: JSON.stringify(ledger) }),
+    );
   }
 
   async function castBallot(footer: Footer): Promise<void> {
@@ -283,12 +315,15 @@ ${pointList}`,
     const fromBailiff = message.senderName === 'bailiff';
     if (footer.type === 'turn') onTurn(message, footer);
     else if (footer.type === 'clerk' && fromBailiff) onClerk(footer);
+    else if (footer.type === 'debrief.call' && fromBailiff) await reportLedger();
     else if (footer.type === 'vote.result' && fromBailiff) {
+      const before = state.belief;
       state = feelTheRoom(state, profile, {
         guilty: Number(footer.guilty),
         notGuilty: Number(footer.notGuilty),
         undecided: Number(footer.undecided),
       });
+      moved.room += state.belief - before;
       raiseHandIfMoved();
     }
 

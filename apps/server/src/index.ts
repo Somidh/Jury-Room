@@ -46,6 +46,12 @@ app.post('/api/trial', (context) => {
   return context.json({ running });
 });
 
+// Kept out of the event stream, so a page can't hold it until someone asks to see it.
+app.get('/api/truth', (context) => {
+  if (running) return context.json({ error: 'The trial is not over.' }, 403);
+  return context.json(court.truth);
+});
+
 app.post('/api/say', async (context) => {
   const { text } = await context.req.json<{ text?: string }>();
   const message = text?.trim();
