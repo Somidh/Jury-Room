@@ -1,9 +1,9 @@
 // Audits the last trial from the Switch room log alone: silence during the briefing, one
-// speaker per grant, a person's reply before every grant, and every reply and quote
-// tracing back to something really said in the room.
+// speaker per grant, the room stopping for a raised hand, jurors never running on past an
+// opening, and every reply and quote tracing back to something really said in the room.
 //   pnpm smoke
 import { parseFooter, stripFooter, SwitchAgent } from '@jury/switch-client';
-import { isHuman } from '@jury/server/shared';
+import { isHand, isHuman } from '@jury/server/shared';
 import { readTeamStore } from '@jury/server/team';
 
 type Message = { id: string; sender_name: string; body: string };
@@ -57,22 +57,35 @@ let passes = 0;
 let quotes = 0;
 let open: string | null = null;
 let began = false;
-let personReplied = true;
+/** A raised hand can land while a juror is already thinking, so one grant may be in flight. */
+const MAX_GRANTS_AFTER_HAND = 1;
+const MAX_RUN = 5;
+let grantsSinceHand: number | null = null;
+let run = 0;
 const SPOKEN = new Set(['floor', 'turn', 'pass', 'ballot', 'ballot.call', 'vote.call', 'hand']);
 
 for (const message of messages) {
   if (isHuman(message.sender_name, message.body)) {
-    if (began) personReplied = true;
+    if (began) {
+      run = 0;
+      if (isHand(stripFooter(message.body)) && grantsSinceHand === null) grantsSinceHand = 0;
+    }
     continue;
   }
   const footer = footerOf(message);
   if (footer?.trial !== trialId) continue;
   if (footer.type === 'deliberation') began = true;
+  if (footer.type === 'human.turn') grantsSinceHand = null;
+  if (footer.type === 'opening') run = 0;
   if (!began && SPOKEN.has(footer.type)) problems.push(`${message.sender_name} broke the briefing silence`);
 
   if (footer.type === 'floor') {
-    if (!personReplied) problems.push(`turn ${footer.turn} started without waiting for the person`);
-    personReplied = false;
+    run += 1;
+    if (run > MAX_RUN) problems.push(`turn ${footer.turn} ran past ${MAX_RUN} jurors with no opening`);
+    if (grantsSinceHand !== null) {
+      grantsSinceHand += 1;
+      if (grantsSinceHand > MAX_GRANTS_AFTER_HAND) problems.push(`turn ${footer.turn} ignored a raised hand`);
+    }
     if (open) problems.push(`turn ${open} got no answer before the next grant`);
     open = String(footer.turn);
     grants += 1;

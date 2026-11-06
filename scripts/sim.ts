@@ -2,6 +2,7 @@
 // Run with: pnpm sim
 import { readFileSync } from 'node:fs';
 import {
+  CASE_IDS,
   CAST,
   feelTheRoom,
   hear,
@@ -14,10 +15,6 @@ import {
   type Tally,
   type Vote,
 } from '@jury/core';
-
-const trial = JSON.parse(
-  readFileSync(new URL('../cases/hale.json', import.meta.url), 'utf8'),
-) as Case;
 
 const LINES_BETWEEN_VOTES = 6;
 const MAX_LINES = 60;
@@ -57,9 +54,9 @@ function count(states: Map<number, JurorState>, human: Vote): Tally {
   };
 }
 
-function play(player: Player, seed: number): { result: string; lines: number; flips: string[] } {
+function play(trial: Case, player: Player, seed: number): { result: string; lines: number; flips: string[] } {
   const random = seeded(seed);
-  const states = new Map(CAST.map((profile) => [profile.id, openingState(profile)]));
+  const states = new Map(CAST.map((profile) => [profile.id, openingState(profile, trial.openingLean)]));
   const flips: string[] = [];
   let plan = [...player.plan];
 
@@ -102,48 +99,62 @@ function play(player: Player, seed: number): { result: string; lines: number; fl
   return { result: `hung ${tally.guilty}-${tally.notGuilty}-${tally.undecided}`, lines: MAX_LINES, flips };
 }
 
-const ids = (side: string) =>
-  trial.points
-    .filter((point) => point.pushes === side)
-    .sort((a, b) => b.weight - a.weight)
-    .map((point) => point.id);
-
-const players: Player[] = [
-  { name: 'strong for not guilty', side: 'not_guilty', plan: ids('not_guilty'), quality: 0.9 },
-  { name: 'strong for guilty', side: 'guilty', plan: ids('guilty'), quality: 0.9 },
-  { name: 'weak, repeats one point', side: 'not_guilty', plan: Array(14).fill('n7'), quality: 0.3 },
-  { name: 'silent, votes not guilty', side: 'not_guilty', plan: [], quality: 0 },
-];
-
 const SEEDS = 200;
+/** A strong player has to win at least this often, and a weak one no more than this. */
+const STRONG_WINS = 50;
+const WEAK_WINS = 10;
+/** With this many jurors already on your side, the room can carry you. That's the point of going along. */
+const CARRIED_BY = 9;
 let failed = false;
 
-for (const player of players) {
-  const results = new Map<string, number>();
-  let totalLines = 0;
-  let firstFlip = 0;
-  for (let seed = 1; seed <= SEEDS; seed += 1) {
-    const { result, lines, flips } = play(player, seed);
-    const bucket = result.startsWith('hung') ? 'hung' : result;
-    results.set(bucket, (results.get(bucket) ?? 0) + 1);
-    totalLines += lines;
-    firstFlip += Number(flips[0]?.match(/L(\d+)/)?.[1] ?? MAX_LINES);
+function check(trial: Case): void {
+  const ids = (side: string) =>
+    trial.points
+      .filter((point) => point.pushes === side)
+      .sort((a, b) => b.weight - a.weight)
+      .map((point) => point.id);
+  const weakest = (side: string) => ids(side).at(-1)!;
+
+  const opening = CAST.map((profile) => openingState(profile, trial.openingLean).vote);
+  const carried = (side: Vote) => opening.filter((vote) => vote === side).length >= CARRIED_BY;
+
+  const players: (Player & { needs: 'win' | 'not win' })[] = [
+    { name: 'strong for not guilty', side: 'not_guilty', plan: ids('not_guilty'), quality: 0.9, needs: 'win' },
+    { name: 'strong for guilty', side: 'guilty', plan: ids('guilty'), quality: 0.9, needs: 'win' },
+    { name: 'weak, repeats one point (not guilty)', side: 'not_guilty', plan: Array(14).fill(weakest('not_guilty')), quality: 0.3, needs: 'not win' },
+    { name: 'weak, repeats one point (guilty)', side: 'guilty', plan: Array(14).fill(weakest('guilty')), quality: 0.3, needs: 'not win' },
+    { name: 'silent, votes not guilty', side: 'not_guilty', plan: [], quality: 0, needs: 'not win' },
+    { name: 'silent, votes guilty', side: 'guilty', plan: [], quality: 0, needs: 'not win' },
+  ];
+
+  console.log(`\n${trial.title}: opens ${opening.filter((vote) => vote === 'guilty').length} guilty, ${opening.filter((vote) => vote === 'not_guilty').length} not guilty, plus you`);
+
+  for (const player of players) {
+    const results = new Map<string, number>();
+    let totalLines = 0;
+    for (let seed = 1; seed <= SEEDS; seed += 1) {
+      const { result, lines } = play(trial, player, seed);
+      const bucket = result.startsWith('hung') ? 'hung' : result;
+      results.set(bucket, (results.get(bucket) ?? 0) + 1);
+      totalLines += lines;
+    }
+    const share = (key: string) => Math.round(((results.get(key) ?? 0) / SEEDS) * 100);
+    const won = share(player.side);
+    const exempt = player.needs === 'not win' && carried(player.side);
+    const ok = exempt || (player.needs === 'win' ? won >= STRONG_WINS : won <= WEAK_WINS);
+    if (!ok) failed = true;
+    console.log(
+      `  ${exempt ? 'room' : ok ? 'ok  ' : 'FAIL'} ${player.name}: guilty ${share('guilty')}%, not guilty ${share('not_guilty')}%, hung ${share('hung')}%, avg ${Math.round(totalLines / SEEDS)} lines`,
+    );
   }
-  const share = (key: string) => Math.round(((results.get(key) ?? 0) / SEEDS) * 100);
-  console.log(
-    `${player.name}: guilty ${share('guilty')}%, not guilty ${share('not_guilty')}%, hung ${share('hung')}%, ` +
-      `avg ${Math.round(totalLines / SEEDS)} lines, first change at line ${Math.round(firstFlip / SEEDS)}`,
-  );
-  if (player.name === 'strong for not guilty' && share('not_guilty') < 50) failed = true;
-  if (player.name === 'strong for guilty' && share('guilty') < 50) failed = true;
-  if (/^(weak|silent)/.test(player.name) && share('not_guilty') > 10) failed = true;
 }
 
-console.log('\nOne strong not-guilty game, seed 7:');
-console.log(play(players[0]!, 7).flips.join('\n'));
+for (const id of CASE_IDS) {
+  check(JSON.parse(readFileSync(new URL(`../cases/${id}.json`, import.meta.url), 'utf8')) as Case);
+}
 
 if (failed) {
-  console.error('\nFAILED: the case is not winnable both ways by skill.');
+  console.error('\nFAILED: a case is not winnable both ways by skill.');
   process.exit(1);
 }
-console.log('\nPASSED: strong play wins either way, weak play does not.');
+console.log('\nPASSED: strong play wins either way in every case. Passive play only wins with a big majority behind it.');

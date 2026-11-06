@@ -1,5 +1,5 @@
 // The room, seen from seat 12 at the foot of the table.
-import { animate, motion, useMotionValue, useTransform } from 'motion/react';
+import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { FACES } from './faces';
 import { Portrait } from './Portrait';
@@ -59,8 +59,12 @@ export function VoteChip({ vote, live, label }: { vote: Vote | undefined; live: 
 }
 
 function yawFor(place: Place, view: TrialView, id: number): number {
-  if (view.prompt) return 0;
+  if (view.held) return 0;
   const inward = -place.side * 0.72;
+  // A passing opening: heads lift, then the talk moves on. Only the foreman looks right at you.
+  if (view.prompt) return id === 1 ? 0 : inward * 0.5;
+  // The nearest jurors catch your hand going up while the speaker is still finishing.
+  if (view.handUp && view.speaker !== id && place.depth >= 0.55) return inward * 0.25;
   if (view.speaker === id) {
     if (view.facing === 12) return 0;
     const target = view.facing ? PLACES[view.facing] : undefined;
@@ -83,7 +87,7 @@ function Seat({ juror, view, onPick, target, order }: {
   const frozen = view.phase !== 'deliberating';
   const someoneSpeaking = view.speaker !== null;
   const scale = scaleAt(place.depth);
-  const brightness = frozen ? 0.3 : speaking ? 1.08 : view.prompt ? 0.92 : someoneSpeaking ? 0.32 : 0.7;
+  const brightness = frozen ? 0.3 : speaking ? 1.08 : view.held ? 0.92 : view.prompt ? 0.76 : someoneSpeaking ? 0.32 : 0.7;
 
   return (
     <motion.div
@@ -108,10 +112,10 @@ function Seat({ juror, view, onPick, target, order }: {
           face={FACES[juror.id]!}
           yaw={yawFor(place, view, juror.id)}
           light={place.side === 0 ? 1 : -place.side as number}
-          slow={view.prompt !== null}
+          slow={view.held}
           delay={order * 0.17}
-          frozen={frozen}
-          staring={view.prompt !== null}
+          frozen={frozen || view.paused}
+          staring={view.held}
         />
       </div>
       {/* Only the head is a target. The portraits overlap, so the whole picture can't be. */}
@@ -227,6 +231,49 @@ function Table() {
   );
 }
 
+/** Your seat, at the foot of the table. It lights up when your hand goes up. */
+function YourSeat({ view }: { view: TrialView }) {
+  const up = view.handUp || view.held;
+  return (
+    <>
+      <motion.div
+        className="your-light"
+        initial={false}
+        animate={{ opacity: up ? 1 : 0 }}
+        transition={{ duration: view.handUp ? 0.35 : 1.2 }}
+      />
+      <AnimatePresence>
+        {view.handUp && (
+          <motion.svg
+            key="hand"
+            className="your-hand"
+            viewBox="0 0 200 420"
+            aria-hidden="true"
+            initial={{ y: '100%', rotate: 7 }}
+            animate={{ y: '0%', rotate: 0 }}
+            exit={{ y: '100%', transition: { duration: 0.7, ease: 'easeIn' } }}
+            transition={{ type: 'spring', stiffness: 120, damping: 15 }}
+          >
+            <defs>
+              <linearGradient id="hand-skin" x1="0" x2="1" y1="0" y2="0.3">
+                <stop offset="0" stopColor="#ffc877" />
+                <stop offset="0.4" stopColor="#a56d43" />
+                <stop offset="1" stopColor="#25130a" />
+              </linearGradient>
+              <linearGradient id="hand-sleeve" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#57402b" />
+                <stop offset="1" stopColor="#0c0704" />
+              </linearGradient>
+            </defs>
+            <path d="M 60 420 L 66 262 L 138 262 L 146 420 Z" fill="url(#hand-sleeve)" />
+            <path d="M 70 270 C 62 226, 42 204, 38 172 C 36 158, 52 152, 62 170 L 74 192 L 66 72 C 65 54, 87 52, 90 72 L 96 150 L 100 48 C 101 28, 124 28, 124 50 L 122 150 L 136 66 C 139 46, 162 50, 159 72 L 146 158 L 170 96 C 176 80, 194 88, 189 106 C 172 164, 164 206, 138 270 Z" fill="url(#hand-skin)" />
+          </motion.svg>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 /** One lamp, and the only thing in the room that flickers. */
 function Lamp({ view }: { view: TrialView }) {
   const level = useMotionValue(1);
@@ -235,7 +282,7 @@ function Lamp({ view }: { view: TrialView }) {
   heat.current = view.heat;
 
   useEffect(() => {
-    if (view.phase !== 'deliberating') return;
+    if (view.phase !== 'deliberating' || view.paused) return;
     let timer: ReturnType<typeof setTimeout>;
     const next = () => {
       const wait = 9000 - heat.current * 7600 + Math.random() * 3000;
@@ -248,7 +295,7 @@ function Lamp({ view }: { view: TrialView }) {
     };
     next();
     return () => clearTimeout(timer);
-  }, [level, view.phase]);
+  }, [level, view.phase, view.paused]);
 
   return (
     <>
@@ -268,7 +315,7 @@ export function Stage({ view, jurors, target, onPick }: {
   target: number | null;
   onPick: (id: number) => void;
 }) {
-  const waiting = view.prompt !== null;
+  const waiting = view.held;
   const hot = view.heat > 0.4;
   const seated = [...jurors].sort((a, b) => PLACES[a.id]!.depth - PLACES[b.id]!.depth);
 
@@ -286,6 +333,7 @@ export function Stage({ view, jurors, target, onPick }: {
         ))}
         <Table />
         <Lamp view={view} />
+        <YourSeat view={view} />
         {seated.map((juror) => <Placard key={juror.id} juror={juror} view={view} />)}
       </motion.div>
 

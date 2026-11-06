@@ -22,11 +22,12 @@ const UNSURE_SHARE = 0.5;
 
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
 
-export function openingState(profile: JurorProfile): JurorState {
+export function openingState(profile: JurorProfile, lean = 0): JurorState {
+  const belief = clamp(profile.openingBelief + lean, 0, 100);
   return {
-    belief: profile.openingBelief,
+    belief,
     // The opening ballot forces a choice. Doubt shows up later, as grey.
-    vote: profile.openingBelief >= 50 ? 'guilty' : 'not_guilty',
+    vote: belief >= 50 ? 'guilty' : 'not_guilty',
     heard: {},
     moved: {},
     grudges: [],

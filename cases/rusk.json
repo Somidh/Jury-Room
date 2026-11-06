@@ -1,0 +1,151 @@
+{
+  "id": "rusk",
+  "kind": "Self-defense",
+  "title": "State v. Ada Rusk",
+  "charge": "Second-degree murder, self-defense claimed",
+  "teaser": "At two in the morning, a man she had every reason to fear walked into her kitchen. She fired twice. Nobody disputes that. The only question is whether she had the right.",
+  "openingLean": -8,
+  "summary": "Dale Corrigan, 49, was shot twice in his ex-wife's kitchen at 2:10 AM on November 3. Ada Rusk, 46, a school bus driver, says he came in through the back door, moved toward her with his hand inside his coat, and that she believed he was going to kill her. He was unarmed. The state says she invited him there and shot a man who had stopped. A guilty vote means the fear was not honest, or not reasonable.",
+  "evidence": [
+    {
+      "id": "order",
+      "label": "The protective order",
+      "detail": "A two-year protective order against Corrigan expired five weeks before the shooting. Rusk did not apply to renew it. Police were called to the house twice in the three years before it.",
+      "strength": "circumstantial"
+    },
+    {
+      "id": "text",
+      "label": "The text message",
+      "detail": "Three days before, Rusk texted him: 'Come get your boxes whenever. Back door's open.' She says she meant in the daytime, while she was at work.",
+      "strength": "disputed"
+    },
+    {
+      "id": "gun",
+      "label": "The gun",
+      "detail": "Rusk bought the pistol three weeks before the shooting, after the order lapsed, and went to a range twice. She had never owned a gun.",
+      "strength": "disputed"
+    },
+    {
+      "id": "wounds",
+      "label": "The wounds",
+      "detail": "One bullet entered the chest, the other the back of the left shoulder. The medical examiner could not say which came first. A man falling or turning could take either.",
+      "strength": "disputed"
+    },
+    {
+      "id": "distance",
+      "label": "The distance",
+      "detail": "Blood and casings put Corrigan about nine feet from Rusk, on the far side of the kitchen table, when he was hit.",
+      "strength": "strong"
+    },
+    {
+      "id": "envelope",
+      "label": "The envelope",
+      "detail": "His right hand was inside his coat, on a sealed envelope with 'Ada' written on it. The blood made the page inside unreadable. No weapon was found on him or in his car.",
+      "strength": "disputed"
+    },
+    {
+      "id": "call",
+      "label": "The 911 call",
+      "detail": "Rusk called six minutes after the shots. Her voice is flat: 'I shot Dale. He's on the floor.' She did not ask for an ambulance until the dispatcher offered one.",
+      "strength": "circumstantial"
+    },
+    {
+      "id": "toxicology",
+      "label": "Toxicology",
+      "detail": "Corrigan's blood alcohol was 0.14, nearly twice the limit to drive. There were no drugs in his system.",
+      "strength": "strong"
+    }
+  ],
+  "witnesses": [
+    {
+      "id": "ferrer",
+      "name": "Dr. Lucia Ferrer",
+      "role": "Emergency physician",
+      "statement": "Treated Rusk's broken wrist two years before. Rusk said she fell. Dr. Ferrer says the break came from twisting, not a fall, and she wrote so in the chart at the time."
+    },
+    {
+      "id": "joyce",
+      "name": "Joyce Corrigan",
+      "role": "Victim's sister",
+      "statement": "Says Dale had been going to meetings, had not touched Ada in years, and only wanted to make things right. She did not know he was drinking again."
+    },
+    {
+      "id": "harlan",
+      "name": "Sgt. Neil Harlan",
+      "role": "Responding officer",
+      "statement": "Found the back door unlocked and no sign of forced entry. Says Rusk's hands were steady and that she had put the gun on the counter and made coffee."
+    },
+    {
+      "id": "tess",
+      "name": "Tess Rusk",
+      "role": "Her daughter, 19",
+      "statement": "Was upstairs and heard her father say 'Ada, please,' then two shots close together. She cannot say what his voice meant. She loves her mother and she loved him."
+    }
+  ],
+  "points": [
+    { "id": "g1", "evidenceId": "text", "claim": "She told him the back door was open, three days before", "pushes": "guilty", "weight": 12, "tactic": "evidence" },
+    { "id": "g2", "evidenceId": "gun", "claim": "She bought a gun and practised, then let the order lapse", "pushes": "guilty", "weight": 12, "tactic": "logic" },
+    { "id": "g3", "evidenceId": "wounds", "claim": "One bullet went into his back", "pushes": "guilty", "weight": 13, "tactic": "evidence" },
+    { "id": "g4", "evidenceId": "distance", "claim": "He was nine feet away with a table between them", "pushes": "guilty", "weight": 13, "tactic": "logic" },
+    { "id": "g5", "evidenceId": "envelope", "claim": "He was unarmed, holding only an envelope", "pushes": "guilty", "weight": 12, "tactic": "evidence" },
+    { "id": "g6", "evidenceId": "call", "claim": "Six minutes passed before she called, and she never asked for help", "pushes": "guilty", "weight": 10, "tactic": "logic" },
+    { "id": "g7", "evidenceId": "harlan", "claim": "Steady hands, and she made coffee with him on the floor", "pushes": "guilty", "weight": 9, "tactic": "emotional" },
+    { "id": "g8", "evidenceId": "joyce", "claim": "He had been going to meetings and wanted to make things right", "pushes": "guilty", "weight": 7, "tactic": "emotional" },
+    { "id": "g9", "evidenceId": "tess", "claim": "He said 'Ada, please', and that's a man begging", "pushes": "guilty", "weight": 9, "tactic": "emotional" },
+    { "id": "g10", "evidenceId": "order", "claim": "She let the order expire herself, so she can't have been that afraid", "pushes": "guilty", "weight": 8, "tactic": "logic" },
+    { "id": "g11", "evidenceId": "order", "claim": "A woman who keeps going back to that kind of mess knows what she's doing", "pushes": "guilty", "weight": 5, "tactic": "emotional", "prejudicial": true },
+    { "id": "n1", "evidenceId": "ferrer", "claim": "The doctor charted a twisting break, and she covered for him", "pushes": "not_guilty", "weight": 11, "tactic": "evidence" },
+    { "id": "n2", "evidenceId": "order", "claim": "Police came twice and a court had ordered him away", "pushes": "not_guilty", "weight": 9, "tactic": "evidence" },
+    { "id": "n3", "evidenceId": "toxicology", "claim": "He was drunk, in her kitchen, at two in the morning", "pushes": "not_guilty", "weight": 11, "tactic": "evidence" },
+    { "id": "n4", "evidenceId": "envelope", "claim": "A hand inside a coat, from nine feet, looks exactly like a hand on a gun", "pushes": "not_guilty", "weight": 11, "tactic": "logic" },
+    { "id": "n5", "evidenceId": "wounds", "claim": "A falling man can take the second shot in the back", "pushes": "not_guilty", "weight": 9, "tactic": "logic" },
+    { "id": "n6", "evidenceId": "text", "claim": "'Whenever' while she's at work is not an invitation at 2 AM", "pushes": "not_guilty", "weight": 9, "tactic": "logic" },
+    { "id": "n7", "evidenceId": "gun", "claim": "She bought it because the order lapsed and nothing protected her", "pushes": "not_guilty", "weight": 9, "tactic": "logic" },
+    { "id": "n8", "evidenceId": "call", "claim": "A flat voice is what shock sounds like", "pushes": "not_guilty", "weight": 7, "tactic": "emotional" },
+    { "id": "n9", "evidenceId": "tess", "claim": "Two shots close together is panic, not an execution", "pushes": "not_guilty", "weight": 9, "tactic": "evidence" },
+    { "id": "n10", "evidenceId": "joyce", "claim": "His sister didn't even know he was drinking again", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n11", "evidenceId": "harlan", "claim": "Nobody can say how a person should behave after that", "pushes": "not_guilty", "weight": 5, "tactic": "emotional" }
+  ],
+  "focus": {
+    "1": ["text", "call"],
+    "2": [],
+    "3": ["distance"],
+    "4": ["distance", "wounds"],
+    "5": ["wounds", "call"],
+    "6": ["harlan"],
+    "7": [],
+    "8": ["envelope"],
+    "9": ["tess", "ferrer"],
+    "10": ["order"],
+    "11": ["distance", "text"]
+  },
+  "fixations": {
+    "1": "The sequence: the order lapses, the gun, the text, then that night.",
+    "2": "Whoever spoke last and sounded sure.",
+    "3": "An unarmed man, nine feet away. Nobody gets to shoot someone for walking into a room.",
+    "4": "Distances and angles: nine feet, one table, two bullets, six minutes.",
+    "5": "You've been in these kitchens as a paramedic. You know what shock looks like, and what a wound can tell you.",
+    "6": "What the officer saw, and whether anyone really makes coffee after a thing like that.",
+    "7": "The clock on the wall.",
+    "8": "What she could actually see in that second, not what anyone knows now.",
+    "9": "A daughter upstairs, a woman who told a doctor she fell, and all the things this family didn't say.",
+    "10": "Why a woman lets a court order lapse and then says she's afraid. You've seen how these households go.",
+    "11": "The exact legal test. Honest fear is not enough. It must also be reasonable."
+  },
+  "record": {
+    "supports": "not_guilty",
+    "reason": "He had hurt her before and she had hidden it. He was drunk, uninvited at that hour, with his hand inside his coat. The text, the gun and the six minutes leave real questions, and the bullet in his back is hard to look at, but no one could say which shot came first. The state had to disprove her fear beyond reasonable doubt. It did not."
+  },
+  "truth": {
+    "beats": [
+      "Ada Rusk told the truth. She saw his hand go into his coat and she believed she was about to die.",
+      "She meant the daytime. The text was only about the boxes. She had never once thought he'd use that door at night.",
+      "Dale Corrigan had been sober for seven months. He drank four whiskeys in a car park that night, because he could not make himself do it without them.",
+      "He had been writing the letter since the spring. It was nine lines long.",
+      "It said she had been right to leave. It said he had signed over his share of the house. It said he would never come near her again, and that he was sorry about her wrist.",
+      "He said 'Ada, please,' and he reached for it.",
+      "The second bullet hit him as he turned to fall. She has never known that the page could not be read. She has never asked what it said."
+    ],
+    "closing": "She was afraid, and she had every right to be. He had come to tell her so."
+  }
+}

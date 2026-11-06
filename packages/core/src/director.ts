@@ -8,6 +8,8 @@ export type Candidate = {
   handRaised: boolean;
   /** Turns since this juror last spoke. Infinity if they haven't. */
   silentFor: number;
+  /** How many of the last few lines were theirs. */
+  recentLines?: number;
 };
 
 export type LastLine = {
@@ -47,6 +49,9 @@ const RECENT_PENALTY = 15;
 const JUST_SPOKE_PENALTY = 40;
 const JITTER = 10;
 const MAX_EXCHANGE = 3;
+/** Two jurors can trade lines, but a room needs a third voice. */
+const DOMINANT_LINES = 2;
+const DOMINANT_PENALTY = 200;
 
 function hasGrudge(grudges: [number, number][], a: number, b: number): boolean {
   return grudges.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
@@ -95,6 +100,11 @@ function score(candidate: Candidate, view: RoomView): { score: number; why: stri
     parts.push(['recent', -JUST_SPOKE_PENALTY]);
   } else if (candidate.silentFor < RECENT_WINDOW && !heated) {
     parts.push(['recent', -RECENT_PENALTY * (RECENT_WINDOW - candidate.silentFor)]);
+  }
+
+  // Only the person calling on someone can override this.
+  if ((candidate.recentLines ?? 0) >= DOMINANT_LINES && !(named && byHuman)) {
+    parts.push(['recent', -DOMINANT_PENALTY]);
   }
 
   const total = parts.reduce((sum, [, value]) => sum + value, 0) + view.random() * JITTER;

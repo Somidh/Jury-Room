@@ -1,6 +1,6 @@
 // Seats the bailiff and jurors in the room. The terminal and the web server both use this.
 import { readFileSync } from 'node:fs';
-import { CAST, createLlm, type Case } from '@jury/core';
+import { CASE_IDS, CAST, createLlm, type Case } from '@jury/core';
 import { createBailiff, type TrialEvent } from './agents/bailiff';
 import { createJuror } from './agents/juror';
 import { createHuman } from './human';
@@ -15,7 +15,10 @@ export async function openCourt({ jurorIds = CAST.map((juror) => juror.id), onEv
   const store = readTeamStore();
   if (!store.roomId) throw new Error('No room yet. Run pnpm bootstrap.');
 
-  const trial = JSON.parse(readFileSync(new URL('../../../cases/hale.json', import.meta.url), 'utf8')) as Case;
+  const cases = CASE_IDS.map(
+    (id) => JSON.parse(readFileSync(new URL(`../../../cases/${id}.json`, import.meta.url), 'utf8')) as Case,
+  );
+  const caseById = (id: string) => cases.find((item) => item.id === id);
   const llm = createLlm({
     provider: process.env.LLM_PROVIDER ?? 'gemini',
     geminiApiKey: process.env.GEMINI_API_KEY,
@@ -50,7 +53,13 @@ export async function openCourt({ jurorIds = CAST.map((juror) => juror.id), onEv
   return {
     human,
     jurorIds,
-    truth: trial.truth,
-    runTrial: (maxTurns?: number) => bailiff.run({ trial, jurorIds, maxTurns }),
+    /** What the selection screen may show: nothing that gives away the evidence or the truth. */
+    cases: cases.map(({ id, kind, title, charge, teaser }) => ({ id, kind, title, charge, teaser })),
+    hasCase: (id: string) => Boolean(caseById(id)),
+    truthOf: (id: string) => caseById(id)?.truth,
+    pace: bailiff.pace,
+    abandon: () => bailiff.abandon(),
+    runTrial: (maxTurns?: number, instant = false, stepping = false, caseId: string = CASE_IDS[0]) =>
+      bailiff.run({ trial: caseById(caseId)!, jurorIds, maxTurns, instant, stepping }),
   };
 }

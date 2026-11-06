@@ -139,6 +139,26 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
 .chip.undecided { background: var(--undecided); color: var(--ink); }
 .chip.none { background: #2a1d14; }
 
+/* Your place at the foot of the table. */
+.your-light {
+  background: radial-gradient(ellipse 34% 26% at 50% 100%, rgb(255 190 100 / 44%), transparent 100%);
+  inset: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  position: absolute;
+  z-index: 17;
+}
+.your-hand {
+  bottom: -3%;
+  filter: drop-shadow(0 0 1.6rem rgb(255 180 90 / 45%));
+  height: 54%;
+  left: 67%;
+  pointer-events: none;
+  position: absolute;
+  transform-origin: 50% 100%;
+  z-index: 18;
+}
+
 .dimmer { background: #080402; inset: 0; pointer-events: none; position: absolute; }
 
 .tension {
@@ -212,6 +232,62 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
 .briefing-end { display: grid; gap: 0.9rem; justify-items: center; padding: 2.5rem 0 3.5rem; text-align: center; }
 .briefing-end p { margin: 0; }
 .briefing-end button { font-size: 1.05rem; padding: 0.85rem 1.5rem; }
+
+/* The desk: five files under one lamp, before anyone has been called in. */
+.desk {
+  background:
+    radial-gradient(ellipse 70% 62% at 50% 38%, rgb(232 163 61 / 20%), transparent 72%),
+    repeating-linear-gradient(92deg, rgb(255 255 255 / 1.2%) 0 2px, transparent 2px 9px),
+    var(--walnut);
+  inset: 0;
+  overflow-y: auto;
+  padding: clamp(1.5rem, 6vh, 3.5rem) 1rem 3rem;
+  position: absolute;
+  text-align: center;
+}
+.desk-head p { margin: 0.4rem auto 0; max-width: 34rem; opacity: 0.8; }
+.desk-head h1 { color: var(--amber); font-size: clamp(2.3rem, 6vw, 3.6rem); line-height: 1.05; }
+.case-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem 1.6rem;
+  justify-content: center;
+  list-style: none;
+  margin: clamp(1.8rem, 5vh, 3rem) auto 0;
+  max-width: 68rem;
+  padding: 0;
+}
+.case-stack li { flex: 0 1 20rem; min-width: 0; }
+.case-card {
+  background: linear-gradient(170deg, var(--manila), #c9b486);
+  border: 0;
+  border-radius: 0 3px 3px 3px;
+  box-shadow: 0 1.2rem 2.2rem rgb(0 0 0 / 60%), inset 0 0 3rem rgb(120 84 40 / 18%);
+  color: var(--ink);
+  display: block;
+  height: 100%;
+  padding: 1.25rem 1.3rem 1.4rem;
+  position: relative;
+  text-align: left;
+  width: 100%;
+}
+.case-card::before {
+  background: #c9b486;
+  border-radius: 4px 4px 0 0;
+  content: '';
+  height: 1.2rem;
+  left: 0;
+  position: absolute;
+  top: -1.15rem;
+  width: 42%;
+}
+.case-card:hover:not(:disabled) { background: linear-gradient(170deg, #e8d8b3, #d6c295); }
+.case-card:disabled { opacity: 1; }
+.case-tab { display: block; font-size: 0.78rem; letter-spacing: 0.06em; opacity: 0.75; text-transform: uppercase; }
+.case-card h2 { font-size: 1.55rem; line-height: 1.12; margin-top: 0.5rem; }
+.case-charge { color: #8f2a1f; display: block; font-size: 0.92rem; font-weight: 700; margin-top: 0.3rem; }
+.case-teaser { display: block; font-size: 0.95rem; line-height: 1.42; margin-top: 0.75rem; }
+.desk-note { margin-top: 1.5rem; }
 
 /* The tally is always there, across the top of the room. */
 .tally {
@@ -300,6 +376,7 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
   width: 100%;
 }
 .dock.waiting { animation: wait-glow 2.6s ease-in-out infinite; }
+.dock:has(.opening-time) { animation: none; }
 @keyframes wait-glow {
   0%, 100% { box-shadow: 0 0 1.2rem rgb(232 163 61 / 28%); }
   50% { box-shadow: 0 0 3rem rgb(232 163 61 / 62%); }
@@ -309,6 +386,51 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
 .address { display: flex; flex: 1; flex-wrap: wrap; gap: 0.25rem; min-width: 0; }
 .address button { border-color: rgb(138 127 112 / 55%); font-size: 0.74rem; padding: 0.05rem 0.4rem; }
 .address button[aria-pressed='true'] { background: var(--amber); border-color: var(--amber); color: var(--ink); font-weight: 700; }
+
+.opening-time { animation: opening-runs-out linear both; background: var(--amber); display: block; height: 2px; transform-origin: left; }
+@keyframes opening-runs-out { to { transform: scaleX(0); } }
+
+/* Continue and Raise hand sit together, so reading and stepping in are one reach apart. */
+.pace-row { align-items: center; display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+.continue { font-weight: 700; min-width: 11rem; padding: 0.6rem 1.6rem; }
+kbd { font: inherit; font-size: 0.72rem; margin-left: 0.5rem; opacity: 0.7; }
+
+.pause { background: rgb(14 8 5 / 86%); border-color: var(--amber); color: var(--amber); font-weight: 700; padding: 0.6rem 1.2rem; }
+.pause:hover:not(:disabled) { background: var(--amber); color: var(--ink); }
+
+/* Paused: the room stays in view, and every loop stops where it is. */
+.screen.paused *, .screen.paused *::before, .screen.paused *::after { animation-play-state: paused !important; }
+.pause-shade { background: rgb(8 5 3 / 62%); inset: 0; pointer-events: none; position: absolute; z-index: 30; }
+.pause-card {
+  background: rgb(14 8 5 / 94%);
+  border: 1px solid var(--amber);
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+  left: 50%;
+  max-width: calc(100vw - 2rem);
+  padding: 1.1rem 2.2rem 1.3rem;
+  position: absolute;
+  text-align: center;
+  top: 24%;
+  transform: translateX(-50%);
+  width: 26rem;
+  z-index: 33;
+}
+.pause-card h2 { color: var(--amber); font: 2rem/1 var(--display); margin: 0; }
+.pause-card p { font-size: 0.92rem; margin: 0; }
+.pause-card .primary { font-weight: 700; padding: 0.55rem 2rem; }
+
+.raise-hand {
+  background: rgb(14 8 5 / 86%);
+  border-color: var(--amber);
+  color: var(--amber);
+  font-weight: 700;
+  padding: 0.6rem 1.6rem;
+}
+.raise-hand:hover:not(:disabled) { background: var(--amber); color: var(--ink); }
+.raise-hand.up, .raise-hand:disabled { opacity: 1; }
+.raise-hand.up { background: var(--amber); color: var(--ink); }
 
 .dock-input { display: flex; gap: 0.5rem; }
 .dock textarea {
@@ -398,7 +520,15 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
 .closing { color: var(--amber); font: clamp(1.7rem, 4.4vw, 2.6rem)/1.28 var(--display); margin: 0; }
 
 /* Your controls move aside for an open sheet, rather than going underneath it. */
+/* Below this width a panel covers the room, so it stops short of the pace buttons. */
+@media (max-width: 1099px) {
+  .sheet { bottom: 4.6rem; }
+}
+
 @media (min-width: 1100px) {
+  .room-tools.beside-transcript { right: 33rem; }
+  .pause-card.beside-transcript { left: calc(50% - 16rem); }
+  .pause-card.beside-case { left: calc(50% + 19rem); }
   .foreground.beside-transcript { padding-right: 33rem; }
   .foreground.beside-case { padding-left: 39rem; }
 }
@@ -416,6 +546,10 @@ button.vote-not-guilty { background: var(--not-guilty); border-color: var(--not-
   .address { flex-wrap: nowrap; overflow-x: auto; }
   .address button { flex: none; }
   .dock h2 { font-size: 1.25rem; }
+  .pace-row { flex-wrap: nowrap; gap: 0.4rem; }
+  .pace-row button { font-size: 0.9rem; padding: 0.55rem 0.7rem; }
+  .continue { min-width: 0; }
+  kbd { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

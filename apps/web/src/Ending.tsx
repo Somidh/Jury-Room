@@ -16,7 +16,7 @@ const VOTE_WORDS: Record<Vote, string> = { guilty: 'guilty', not_guilty: 'not gu
 /** Long enough to read, then a breath. */
 const readingTime = (text: string) => 2200 + text.length * 42;
 
-const startAnother = () => void fetch('/api/trial', { method: 'POST' });
+const backToDesk = () => void fetch('/api/leave', { method: 'POST' });
 
 function Verdict({ verdict, debrief, onNext }: { verdict: string; debrief: Debrief | null; onNext: () => void }) {
   const unanimous = verdict === 'guilty' || verdict === 'not_guilty';
@@ -146,7 +146,7 @@ function Threshold({ onReveal, onLeave }: { onReveal: () => void; onLeave: () =>
       <p>The jury has gone home. Nothing below changes anything you did in that room.</p>
       <p>Most jurors never find out.</p>
       <div className="actions">
-        <button className="primary" onClick={onReveal}>What actually happened that night</button>
+        <button className="primary" onClick={onReveal}>What actually happened</button>
         <button onClick={onLeave}>Leave it there</button>
       </div>
     </motion.section>
@@ -188,7 +188,7 @@ function Reveal() {
     scroller?.scrollTo({ top: closing ? 0 : scroller.scrollHeight, behavior: closing ? 'auto' : 'smooth' });
   }, [shown, closing]);
 
-  if (failed) return <section className="beat reveal-beat"><p>The record of that night could not be opened. Check that the server is still running.</p></section>;
+  if (failed) return <section className="beat reveal-beat"><p>The record could not be opened. Check that the server is still running.</p></section>;
 
   return (
     <AnimatePresence mode="wait">
@@ -196,8 +196,8 @@ function Reveal() {
         // The story clears and the last line stands alone.
         <motion.section key="closing" className="beat closing-beat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9, duration: 2.6 }}>
           <p className="closing">{truth.closing}</p>
-          <motion.button className="primary" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 5 }} onClick={startAnother}>
-            Start another trial
+          <motion.button className="primary" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 5 }} onClick={backToDesk}>
+            Back to the case files
           </motion.button>
         </motion.section>
       ) : (
@@ -239,7 +239,7 @@ export function Ending({ verdict, debrief, jurors }: { verdict: string; debrief:
           {beat === 'left' && (
             <section className="beat threshold-beat">
               <p>Then that is where it stays.</p>
-              <button className="primary" onClick={startAnother}>Start another trial</button>
+              <button className="primary" onClick={backToDesk}>Back to the case files</button>
             </section>
           )}
         </motion.div>

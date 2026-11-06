@@ -42,13 +42,15 @@ export async function readCaseDocument(agent: SwitchAgent, id: string): Promise<
 const PASS = /^pass\.?$/i;
 const BEGIN = /^(i(['’]ve| have) read the case\.?\s*)?begin( the)?( deliberation)?\.?$/i;
 const CALL_VOTE = /call (a|the) vote/i;
+const HAND = /^(raise )?(my )?hand\.?$/i;
 
 export const isPass = (text: string) => PASS.test(text.trim());
 export const isBegin = (text: string) => BEGIN.test(text.trim());
 export const isCallVote = (text: string) => CALL_VOTE.test(text);
+export const isHand = (text: string) => HAND.test(text.trim());
 
 /** A button press or a procedural ask. Jurors never hear these as argument. */
-const isControl = (text: string) => isPass(text) || isBegin(text) || isCallVote(text);
+const isControl = (text: string) => isPass(text) || isBegin(text) || isCallVote(text) || isHand(text);
 
 export type RoomLine = {
   id: string;

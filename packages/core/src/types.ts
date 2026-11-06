@@ -33,14 +33,22 @@ export type CaseTruth = { beats: string[]; closing: string };
 
 export type Case = {
   id: string;
+  /** The kind of case, for the file tab on the selection screen. */
+  kind: string;
   title: string;
   charge: string;
+  /** A line or two to intrigue, with none of the evidence. */
+  teaser: string;
+  /** Added to every juror's opening belief, so a close case can open close. */
+  openingLean?: number;
   summary: string;
   evidence: EvidenceItem[];
   witnesses: Witness[];
   points: Point[];
   /** Juror id to the evidence or witness ids they fixate on. */
   focus: Record<string, string[]>;
+  /** Juror id to what that juror dwells on in this case, in their own terms. */
+  fixations: Record<string, string>;
   record: CaseRecord;
   truth: CaseTruth;
 };

@@ -63,6 +63,11 @@ export function startAudio(): void {
   startRoomTone(context, master);
 }
 
+/** Stops every sound where it is, and picks them all up again on resume. */
+export function setFrozen(value: boolean): void {
+  void (value ? context?.suspend() : context?.resume());
+}
+
 export function setMuted(value: boolean): void {
   muted = value;
   if (master) master.gain.value = value ? 0 : VOLUME;
@@ -72,6 +77,12 @@ export function setMuted(value: boolean): void {
 export function playFlip(): void {
   thump(120, 0.22, 0.16);
   thump(620, 0.03, 0.05);
+}
+
+/** A chair shifting, then the room catching its breath. */
+export function playHandRaised(): void {
+  thump(78, 0.34, 0.3);
+  thump(210, 0.05, 0.12, 0.06);
 }
 
 export function setHeartbeat(on: boolean): void {

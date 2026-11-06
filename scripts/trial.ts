@@ -1,7 +1,7 @@
 // Runs one trial in #jury-room and prints it as a screenplay.
-//   pnpm trial                      you play from Mattermost: begin, then argue or pass
-//   pnpm trial --scripted           answers every prompt as you, to test the whole path
-//   pnpm trial --scripted --quiet   you vote, but pass on every chance to argue
+//   pnpm trial                      you play from Mattermost: begin, then hand when you want in
+//   pnpm trial --scripted           raises your hand every few lines, to test the whole path
+//   pnpm trial --scripted --quiet   you vote, then let every opening go by
 import { CAST } from '@jury/core';
 import { openCourt } from '@jury/server/court';
 import { ROOM_NAME } from '@jury/server/team';
@@ -30,13 +30,19 @@ const seat = (speaker: string) => {
   return juror ? `${juror.id} ${juror.name.split(' ')[0]!.toUpperCase()}` : speaker.toUpperCase();
 };
 
-let prompts = 0;
+const LINES_BETWEEN_HANDS = 3;
+let jurorLines = 0;
 const say = (text: string) => void court.human.say(text);
 
 const court = await openCourt({
   jurorIds,
   onEvent(event) {
     if (event.type === 'line') {
+      // Only spoken lines carry both a vote and a mood. Ballots have no mood.
+      if (scripted && !quiet && event.vote && event.mood) {
+        jurorLines += 1;
+        if (jurorLines % LINES_BETWEEN_HANDS === 0 && ARGUMENTS.length) say('raise hand');
+      }
       const tag = event.vote ? ` [${event.vote}${event.mood ? `, ${event.mood}` : ''}]` : '';
       console.log(event.speaker === 'stage' ? `\n    (${event.text})` : `\n${seat(event.speaker)}${tag}\n    ${event.text}`);
     } else if (event.type === 'tally') {
@@ -56,15 +62,13 @@ const court = await openCourt({
       if (scripted) say('I have read the case. Begin deliberation.');
     } else if (event.type === 'prompt' && scripted) {
       if (event.kind === 'vote') return say('I vote not guilty');
-      // Every other chance, so the transcript shows both an argument and a pass.
-      prompts += 1;
-      const next = !quiet && prompts % 2 === 1 ? ARGUMENTS.shift() : undefined;
-      say(next ?? 'pass');
+      if (event.reason === 'opening') return say('pass');
+      say(ARGUMENTS.shift() ?? 'pass');
     }
   },
 });
 
 console.log(`${court.jurorIds.length} jurors in the room.`);
-const verdict = await court.runTrial(maxTurns);
+const verdict = await court.runTrial(maxTurns, scripted);
 console.log(`\nTrial over: ${verdict}`);
 process.exit(0);

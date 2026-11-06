@@ -1,0 +1,152 @@
+{
+  "id": "voss",
+  "kind": "Theft",
+  "title": "State v. Mara Voss",
+  "charge": "Grand theft",
+  "teaser": "A violin worth $1.2 million leaves a locked vault during a sold-out recital. The young woman who restored it says she had gone home.",
+  "openingLean": -8,
+  "summary": "The Calloway violin, made in 1714 and insured for $1.2 million, vanished from the vault at Aldgate Conservatory during a recital on the evening of March 9. Its owner, the collector Lucian Hargrave, found the vault empty at 9:40 PM. Mara Voss, 27, an apprentice luthier who had spent six weeks restoring the instrument, was arrested two days later. She says she never went near the vault that night.",
+  "evidence": [
+    {
+      "id": "keypad",
+      "label": "The vault keypad",
+      "detail": "Voss's personal code opened the vault at 7:26 PM. The codes were written on a card taped inside the workshop cabinet, and three staff admit they had seen it.",
+      "strength": "disputed"
+    },
+    {
+      "id": "barrier",
+      "label": "The car park barrier",
+      "detail": "Voss told police she left at 6:15 PM. The barrier recorded her car leaving at 7:41 PM. Confronted, she said she had stayed to finish a repair and got the time wrong.",
+      "strength": "strong"
+    },
+    {
+      "id": "debt",
+      "label": "Her debts",
+      "detail": "Voss owed $84,000 for her mother's care home and was three months behind. She had kept up partial payments every month from an apprentice's wage.",
+      "strength": "circumstantial"
+    },
+    {
+      "id": "email",
+      "label": "The Geneva email",
+      "detail": "Eleven days before the theft, Voss emailed a Geneva dealer asking what a Calloway-school violin might fetch. She used her conservatory address and says a private client asked her to find out.",
+      "strength": "circumstantial"
+    },
+    {
+      "id": "varnish",
+      "label": "The varnish",
+      "detail": "Traces of the violin's rare amber varnish were found on the cuff of Voss's coat. She had worked on that violin most days for six weeks.",
+      "strength": "disputed"
+    },
+    {
+      "id": "case",
+      "label": "The empty case",
+      "detail": "The violin's case turned up, wiped clean, in a bin behind Voss's building on March 11. That bin serves forty flats and backs onto an open alley.",
+      "strength": "circumstantial"
+    },
+    {
+      "id": "rider",
+      "label": "The insurance rider",
+      "detail": "Five weeks before the theft, Hargrave raised the violin's cover from $800,000 to $1.2 million. Accounts show his firm lost money for two years running.",
+      "strength": "disputed"
+    },
+    {
+      "id": "camera",
+      "label": "The corridor camera",
+      "detail": "The camera outside the vault was off for maintenance from 7 PM to 8 PM. The booking was made by Hargrave's assistant three days earlier.",
+      "strength": "disputed"
+    }
+  ],
+  "witnesses": [
+    {
+      "id": "hollis",
+      "name": "Bram Hollis",
+      "role": "Caretaker",
+      "statement": "Saw a woman in a dark coat near the vault stairs at about 7:30, carrying something long. The stairs are lit only by exit signs, and he never saw her face. He says she walked like Mara."
+    },
+    {
+      "id": "rowe",
+      "name": "Cecily Rowe",
+      "role": "Hargrave's assistant",
+      "statement": "Booked the camera maintenance and calls it routine. Agreed under cross-examination that it was the first such booking she had ever made, and that Mr Hargrave had reminded her to do it."
+    },
+    {
+      "id": "pike",
+      "name": "Det. Anton Pike",
+      "role": "Lead investigator",
+      "statement": "Searched Voss's flat, workshop and accounts and found no violin, no buyer and no money. Agreed that he never looked at Hargrave's finances until the defence asked."
+    },
+    {
+      "id": "demir",
+      "name": "Yusuf Demir",
+      "role": "Geneva dealer",
+      "statement": "Received Voss's email and thought nothing of it. Says a man who wouldn't give his name telephoned a week later asking the same question."
+    }
+  ],
+  "points": [
+    { "id": "g1", "evidenceId": "keypad", "claim": "Her own code opened the vault during the recital", "pushes": "guilty", "weight": 12, "tactic": "evidence" },
+    { "id": "g2", "evidenceId": "barrier", "claim": "She lied to police about when she left", "pushes": "guilty", "weight": 13, "tactic": "logic" },
+    { "id": "g3", "evidenceId": "barrier", "claim": "Her car left 15 minutes after the vault was opened", "pushes": "guilty", "weight": 10, "tactic": "logic" },
+    { "id": "g4", "evidenceId": "debt", "claim": "She owed $84,000 and was three months behind", "pushes": "guilty", "weight": 8, "tactic": "logic" },
+    { "id": "g5", "evidenceId": "email", "claim": "She priced this kind of violin eleven days before it vanished", "pushes": "guilty", "weight": 10, "tactic": "evidence" },
+    { "id": "g6", "evidenceId": "varnish", "claim": "The violin's varnish was on her coat", "pushes": "guilty", "weight": 6, "tactic": "evidence" },
+    { "id": "g7", "evidenceId": "case", "claim": "The empty case was dumped behind her building", "pushes": "guilty", "weight": 7, "tactic": "evidence" },
+    { "id": "g8", "evidenceId": "hollis", "claim": "The caretaker knew her walk at the vault stairs", "pushes": "guilty", "weight": 6, "tactic": "emotional" },
+    { "id": "g9", "evidenceId": "debt", "claim": "People that deep in debt will take whatever they can reach", "pushes": "guilty", "weight": 5, "tactic": "emotional", "prejudicial": true },
+    { "id": "n1", "evidenceId": "keypad", "claim": "The codes were on a card that three staff had seen", "pushes": "not_guilty", "weight": 7, "tactic": "logic" },
+    { "id": "n2", "evidenceId": "keypad", "claim": "Nobody robs a vault using their own personal code", "pushes": "not_guilty", "weight": 6, "tactic": "logic" },
+    { "id": "n3", "evidenceId": "varnish", "claim": "Six weeks on that violin explains the varnish", "pushes": "not_guilty", "weight": 6, "tactic": "logic" },
+    { "id": "n4", "evidenceId": "rider", "claim": "Hargrave raised the insurance by $400,000 five weeks before", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n5", "evidenceId": "rider", "claim": "Hargrave's firm was losing money and he had the motive", "pushes": "not_guilty", "weight": 6, "tactic": "logic" },
+    { "id": "n6", "evidenceId": "camera", "claim": "Hargrave's own assistant switched off the camera for that exact hour", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n7", "evidenceId": "rowe", "claim": "She had never booked maintenance before, and Hargrave reminded her to", "pushes": "not_guilty", "weight": 7, "tactic": "logic" },
+    { "id": "n8", "evidenceId": "pike", "claim": "No violin, no buyer and no money were ever found", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n9", "evidenceId": "pike", "claim": "The detective never checked Hargrave until the defence asked", "pushes": "not_guilty", "weight": 6, "tactic": "evidence" },
+    { "id": "n10", "evidenceId": "case", "claim": "That bin serves forty flats and an open alley", "pushes": "not_guilty", "weight": 4, "tactic": "logic" },
+    { "id": "n11", "evidenceId": "hollis", "claim": "A walk by exit-sign light with no face identifies nobody", "pushes": "not_guilty", "weight": 6, "tactic": "evidence" },
+    { "id": "n12", "evidenceId": "demir", "claim": "A stranger called the dealer with the same question a week later", "pushes": "not_guilty", "weight": 6, "tactic": "logic" },
+    { "id": "n13", "evidenceId": "email", "claim": "A thief doesn't price a violin from her work email", "pushes": "not_guilty", "weight": 4, "tactic": "logic" },
+    { "id": "n14", "evidenceId": "debt", "claim": "She kept paying what she could, every month, on an apprentice's wage", "pushes": "not_guilty", "weight": 4, "tactic": "emotional" }
+  ],
+  "focus": {
+    "1": ["barrier", "keypad"],
+    "2": [],
+    "3": ["barrier"],
+    "4": ["rider", "keypad"],
+    "5": ["debt"],
+    "6": ["hollis"],
+    "7": [],
+    "8": ["camera"],
+    "9": ["varnish", "demir"],
+    "10": ["debt"],
+    "11": ["pike"]
+  },
+  "fixations": {
+    "1": "The evening minute by minute: 6:15, 7:26, 7:30, 7:41.",
+    "2": "Whoever spoke last and sounded sure.",
+    "3": "She lied to the police about when she left. People who've done nothing don't lie.",
+    "4": "The insurance rider and the keypad log. Those are numbers, and numbers can be priced.",
+    "5": "What debt like that does to a person. You've seen families choose between rent and medicine.",
+    "6": "Whether a caretaker can really know someone's walk in the dark.",
+    "7": "The clock on the wall.",
+    "8": "The hour the camera went dark, and who arranged it.",
+    "9": "A woman who spends six weeks caring for an instrument, and what it would take to sell it.",
+    "10": "Her debts. In your experience people who can't pay always find a way to take.",
+    "11": "A search that began and ended with the apprentice, and never reached the rich man."
+  },
+  "record": {
+    "supports": "guilty",
+    "reason": "Her code opened the vault, she was in the building when it opened, and she lied about that to the police. She had a debt she couldn't pay and had asked what such a violin was worth. Hargrave's insurance and the dark camera raise real questions, but none of it explains why an innocent person gives a false time. On what was presented, the case against her holds, narrowly."
+  },
+  "truth": {
+    "beats": [
+      "Mara Voss did not take the violin. She never opened the vault.",
+      "Lucian Hargrave sold it in January, privately, to a buyer in another country. He still needed it to be stolen.",
+      "The client who asked Mara to price a Calloway-school violin worked for him. So did the man who rang Geneva, checking that the email had arrived.",
+      "The card in the workshop cabinet told him her code. Cecily Rowe booked the camera because she was told to, and she never asked why.",
+      "Mara lied about 7:41 because she had been in the workshop doing paid repairs on the side, which would have ended her apprenticeship. It was how she paid the care home.",
+      "The varnish was six weeks of honest work. Even the bin was chosen.",
+      "He collected $1.2 million. He sent flowers to the conservatory."
+    ],
+    "closing": "A clean case isn't the same thing as a true one. Sometimes it's clean because someone took great care."
+  }
+}

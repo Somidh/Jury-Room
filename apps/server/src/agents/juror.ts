@@ -55,6 +55,12 @@ const Reply = z.object({
 });
 type Reply = z.infer<typeof Reply>;
 
+const OPENING_LINES = [
+  'Anyone else want to weigh in?',
+  'Before we go on. Does anyone else have something to say?',
+  "We haven't heard from everyone. Anyone?",
+];
+
 const BALLOT_LINES: Record<Vote, string> = {
   guilty: 'Guilty.',
   not_guilty: 'Not guilty.',
@@ -62,8 +68,8 @@ const BALLOT_LINES: Record<Vote, string> = {
 };
 
 function describeBelief(belief: number): string {
-  if (belief >= 85) return 'You are certain he did it.';
-  if (belief >= 65) return 'You think he did it.';
+  if (belief >= 85) return 'You are certain the defendant is guilty.';
+  if (belief >= 65) return 'You think the defendant is guilty.';
   if (belief >= 55) return 'You lean toward guilty, without much comfort.';
   if (belief >= 45) return "You honestly don't know any more.";
   if (belief >= 35) return 'You lean toward not guilty, and it unsettles you.';
@@ -158,14 +164,14 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
 
   async function onTrialStart(footer: Footer): Promise<void> {
     trialId = String(footer.trial);
-    state = openingState(profile);
     mood = 'settled';
     handRaised = false;
-    openingVote = state.vote;
     moved = { person: 0, jurors: 0, room: 0, self: 0 };
     byArgument = {};
     reasons.length = 0;
     trial = await readCaseDocument(agent, String(footer.doc));
+    state = openingState(profile, trial.openingLean);
+    openingVote = state.vote;
   }
 
   function buildPrompt(lines: RoomLine[], pendingVote: Vote, why: string): string {
@@ -176,7 +182,7 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
       .filter((point) => !wornOut.includes(point))
       .map((point) => `${point.id}: ${point.claim}`)
       .join('\n');
-    const focus = (trial!.focus[String(profile.id)] ?? []).join(', ') || 'whatever the room is doing';
+    const focus = trial!.fixations[String(profile.id)] ?? 'whatever the room is doing';
     const transcript = lines.map((line) => `${line.label}: ${line.text}`).join('\n') || '(nobody has spoken yet)';
     const said = lines.filter((line) => line.speaker === profile.id).map((line) => `- ${line.text}`).join('\n');
     return [
@@ -185,7 +191,7 @@ export function createJuror(connection: Connection, profile: JurorProfile, llm: 
 Your last vote: ${voteWords[state.vote]}. ${describeBelief(state.belief)}
 Your mood: ${mood}. People who've got under your skin: ${state.grudges.map((id) => `Juror ${id}`).join(', ') || 'nobody'}.
 What's been on your mind: ${reasons.slice(-3).join('; ') || 'nothing yet'}.
-What you fixate on in this case: ${focus}.`,
+What you fixate on in this case: ${focus}`,
       changing
         ? `YOU HAVE CHANGED YOUR MIND. You are now ${voteWords[pendingVote]}. Let the room hear it in your own voice, and name the one thing that did it. It should cost you something. Talk like a person, not a form: never say "changing my vote", "moving to", or the word "undecided".`
         : `Your vote is still ${voteWords[state.vote]}. Don't say or imply anything else. ${
@@ -298,6 +304,12 @@ ${pointList}`,
     );
   }
 
+  /** The foreman's job: stop the table and look down it. Scripted, so it can't fail or wander. */
+  async function offerTheFloor(footer: Footer): Promise<void> {
+    const line = OPENING_LINES[Number(footer.count) % OPENING_LINES.length]!;
+    await agent.post(formatFooter(line, { type: 'opening', trial: trialId }));
+  }
+
   async function castBallot(footer: Footer): Promise<void> {
     await agent.post(
       formatFooter(BALLOT_LINES[state.vote], { type: 'ballot', trial: trialId, round: footer.round, vote: state.vote }),
@@ -331,6 +343,7 @@ ${pointList}`,
     if (!fromBailiff || !message.addressed) return;
     if (footer.type === 'floor') await takeFloor(footer);
     else if (footer.type === 'ballot.call') await castBallot(footer);
+    else if (footer.type === 'opening.call') await offerTheFloor(footer);
   }
 
   return { agent, profile };

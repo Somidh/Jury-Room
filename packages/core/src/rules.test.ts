@@ -191,6 +191,29 @@ describe('turn director', () => {
     expect(pickNext(view({ candidates, last, exchangeLength: 3 }))?.jurorId).toBe(1);
   });
 
+  it('brings in a third voice when two jurors have held the floor', () => {
+    const grant = pickNext(view({
+      candidates: [
+        candidate(8, { vote: 'not_guilty', talkativeness: 1, silentFor: 1, recentLines: 2 }),
+        candidate(6, { vote: 'guilty', talkativeness: 1, silentFor: 0, recentLines: 2 }),
+        candidate(9, { vote: 'guilty', talkativeness: 0.2, silentFor: 6 }),
+      ],
+      last: { speaker: 6, speakerVote: 'guilty', target: 8, evidenceIds: [] },
+    }));
+    expect(grant?.jurorId).toBe(9);
+  });
+
+  it('lets the person call on anyone, however much they have spoken', () => {
+    const grant = pickNext(view({
+      candidates: [
+        candidate(8, { silentFor: 1, recentLines: 2 }),
+        candidate(9, { silentFor: 6 }),
+      ],
+      last: { speaker: 'human', target: 8, evidenceIds: [] },
+    }));
+    expect(grant?.jurorId).toBe(8);
+  });
+
   it('favours a holdout over a majority that keeps agreeing', () => {
     const grant = pickNext(view({
       candidates: [

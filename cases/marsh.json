@@ -1,0 +1,152 @@
+{
+  "id": "marsh",
+  "kind": "Fraud",
+  "title": "State v. Delphine Marsh",
+  "charge": "Fraud and embezzlement",
+  "teaser": "After the flood, a small town gave everything it had to the relief fund. Eighteen months later, a third of a million dollars is gone, and the woman who kept the books says she only trusted the wrong man.",
+  "openingLean": -8,
+  "summary": "The Saltmarsh Flood Relief Fund raised $1.1 million after the river broke its banks. An audit found that $318,000 had been paid to Greyline Contracting over 18 months, for repairs nobody can find. Delphine Marsh, 51, the fund's unpaid treasurer and a bookkeeper for 30 years, signed all 41 cheques. She says the fund's founder, Graham Tull, approved every invoice and that she trusted him. To convict, the jury must find she knew.",
+  "evidence": [
+    {
+      "id": "cheques",
+      "label": "The 41 cheques",
+      "detail": "Every Greyline cheque carries Marsh's signature alone. The fund's rules required two signatures, but the bank never enforced it and nobody on the board ever asked.",
+      "strength": "strong"
+    },
+    {
+      "id": "greyline",
+      "label": "Greyline's address",
+      "detail": "Greyline's only address is a PO box once rented by Marsh's late husband. Its director's name belongs to nobody. Box fees were paid in cash, and Tull helped the Marshes with their paperwork for years.",
+      "strength": "disputed"
+    },
+    {
+      "id": "hospice",
+      "label": "The hospice payments",
+      "detail": "Over the same 18 months, $62,000 went to her husband's hospice from Marsh's own account. She says it came from savings and selling her car, but only $19,000 of it is documented.",
+      "strength": "strong"
+    },
+    {
+      "id": "invoices",
+      "label": "The invoices",
+      "detail": "The Greyline invoices were built on a template with 'D Marsh' in the file data. She made that template for the fund, and everyone in the office used it.",
+      "strength": "disputed"
+    },
+    {
+      "id": "email",
+      "label": "The month-seven email",
+      "detail": "In month seven Marsh wrote to Tull: 'These Greyline numbers don't look right to me.' He replied: 'Leave it with me.' She signed 23 more cheques.",
+      "strength": "disputed"
+    },
+    {
+      "id": "ledger",
+      "label": "The deleted ledger",
+      "detail": "Three months of ledger entries were deleted from Marsh's laptop a week before the audit. Tull's nephew had serviced that laptop the same week and knew the password.",
+      "strength": "disputed"
+    },
+    {
+      "id": "boat",
+      "label": "Tull's boat",
+      "detail": "During the same period Tull paid $140,000 in cash for a boat and a new roof. He calls it an inheritance. There is no probate record.",
+      "strength": "circumstantial"
+    },
+    {
+      "id": "immunity",
+      "label": "The immunity deal",
+      "detail": "Tull testified for the state under a written promise that nothing he said could be used to charge him.",
+      "strength": "circumstantial"
+    }
+  ],
+  "witnesses": [
+    {
+      "id": "tull",
+      "name": "Graham Tull",
+      "role": "Fund founder",
+      "statement": "Says he left the money entirely to Delphine, never read an invoice, and took her email to mean a rounding error. He could not recall what 'leave it with me' had led to."
+    },
+    {
+      "id": "beck",
+      "name": "Joan Beck",
+      "role": "Forensic auditor",
+      "statement": "Says the payments were sized to stay under the board's review limit, which takes someone who knows the rules. Agreed that Tull wrote those rules."
+    },
+    {
+      "id": "rafe",
+      "name": "Rafe Tull",
+      "role": "The founder's nephew",
+      "statement": "Serviced Marsh's laptop that week. Denies touching the ledger. Admits he had the password and that his uncle asked him to do the job."
+    },
+    {
+      "id": "ashby",
+      "name": "Nell Ashby",
+      "role": "Flood victim",
+      "statement": "Says Delphine sat up nights filling in forms for families and once paid a stranger's rent herself. Also says her own roof was promised and never came."
+    }
+  ],
+  "points": [
+    { "id": "g1", "evidenceId": "cheques", "claim": "She signed all 41 cheques herself", "pushes": "guilty", "weight": 12, "tactic": "evidence" },
+    { "id": "g2", "evidenceId": "cheques", "claim": "A bookkeeper of 30 years knew the rules needed two signatures", "pushes": "guilty", "weight": 10, "tactic": "logic" },
+    { "id": "g3", "evidenceId": "email", "claim": "She saw it was wrong in month seven and signed 23 more", "pushes": "guilty", "weight": 14, "tactic": "logic" },
+    { "id": "g4", "evidenceId": "hospice", "claim": "$43,000 of her hospice payments can't be explained", "pushes": "guilty", "weight": 13, "tactic": "evidence" },
+    { "id": "g5", "evidenceId": "greyline", "claim": "The fake firm used her late husband's PO box", "pushes": "guilty", "weight": 11, "tactic": "evidence" },
+    { "id": "g6", "evidenceId": "invoices", "claim": "Her name is in the invoice file data", "pushes": "guilty", "weight": 7, "tactic": "evidence" },
+    { "id": "g7", "evidenceId": "ledger", "claim": "Her ledger was wiped a week before the audit", "pushes": "guilty", "weight": 10, "tactic": "logic" },
+    { "id": "g8", "evidenceId": "beck", "claim": "Payments sized under the limit took someone who knew the rules", "pushes": "guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "g9", "evidenceId": "ashby", "claim": "Families like Nell Ashby's never got their roofs", "pushes": "guilty", "weight": 7, "tactic": "emotional" },
+    { "id": "g10", "evidenceId": "hospice", "claim": "Someone who's handled other people's money that long always helps themselves in the end", "pushes": "guilty", "weight": 5, "tactic": "emotional", "prejudicial": true },
+    { "id": "n1", "evidenceId": "email", "claim": "She raised the alarm in writing, and a schemer doesn't do that", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n2", "evidenceId": "email", "claim": "Tull told her 'leave it with me', so she had his word", "pushes": "not_guilty", "weight": 6, "tactic": "evidence" },
+    { "id": "n3", "evidenceId": "boat", "claim": "Tull spent $140,000 in cash with no inheritance on record", "pushes": "not_guilty", "weight": 10, "tactic": "evidence" },
+    { "id": "n4", "evidenceId": "immunity", "claim": "Tull only testified with immunity in his pocket", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n5", "evidenceId": "greyline", "claim": "Tull knew that PO box from years of helping with their paperwork", "pushes": "not_guilty", "weight": 7, "tactic": "logic" },
+    { "id": "n6", "evidenceId": "invoices", "claim": "It's her template, and the whole office used it", "pushes": "not_guilty", "weight": 6, "tactic": "logic" },
+    { "id": "n7", "evidenceId": "ledger", "claim": "Tull's nephew had the laptop and the password that same week", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n8", "evidenceId": "beck", "claim": "Tull wrote the limit the payments were sized to", "pushes": "not_guilty", "weight": 7, "tactic": "logic" },
+    { "id": "n9", "evidenceId": "hospice", "claim": "$62,000 is far less than $318,000, so where did the rest go?", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n10", "evidenceId": "cheques", "claim": "The whole board and the bank ignored the two-signature rule", "pushes": "not_guilty", "weight": 5, "tactic": "logic" },
+    { "id": "n11", "evidenceId": "ashby", "claim": "She paid a stranger's rent and sat up nights for free", "pushes": "not_guilty", "weight": 5, "tactic": "emotional" },
+    { "id": "n12", "evidenceId": "tull", "claim": "The man who ran the fund says he never read one invoice", "pushes": "not_guilty", "weight": 6, "tactic": "emotional" }
+  ],
+  "focus": {
+    "1": ["email"],
+    "2": [],
+    "3": ["ashby"],
+    "4": ["hospice", "cheques"],
+    "5": ["ashby"],
+    "6": ["tull"],
+    "7": [],
+    "8": ["immunity"],
+    "9": ["hospice"],
+    "10": ["cheques"],
+    "11": ["email", "boat"]
+  },
+  "fixations": {
+    "1": "The order of it: what she knew in month seven, and what she signed after.",
+    "2": "Whoever spoke last and sounded sure.",
+    "3": "People lost their homes and someone stole the money for the roofs. Somebody pays for that.",
+    "4": "The arithmetic: $318,000 out, $62,000 to the hospice, $19,000 documented.",
+    "5": "The families on the ground, and who actually showed up for them.",
+    "6": "Whether a decent person trusts their boss too long, or just stops looking.",
+    "7": "The clock on the wall.",
+    "8": "What a witness will say once the state has promised not to touch him.",
+    "9": "What a person will do with a husband dying in the next room.",
+    "10": "Her name on every cheque. In your experience whoever holds the chequebook is the thief.",
+    "11": "The word 'knew'. The law asks what was in her mind, and in month seven something was."
+  },
+  "record": {
+    "supports": "guilty",
+    "reason": "Tull's cash and his immunity deal are troubling, and he may well belong beside her. But she signed every cheque, she saw in month seven that the numbers were wrong, and she signed 23 more, while $43,000 she can't account for went to her husband's care. The charge asks what she knew. On what was presented, she knew enough."
+  },
+  "truth": {
+    "beats": [
+      "Graham Tull invented Greyline. He had known about the old PO box for years.",
+      "For six months Delphine Marsh signed what he handed her, because he was Graham and the town was drowning.",
+      "In month seven she noticed. She wrote the email. It was exactly what it looked like: an honest woman raising her hand.",
+      "He came to the hospice that Friday. He sat by her husband's bed and asked how the bills were going.",
+      "After that an envelope of cash arrived every month. That was the $43,000. Nobody ever said what it was for.",
+      "She signed 23 more cheques. She deleted the ledger herself.",
+      "Her husband died in a warm room, with a nurse beside him, in the spring. She says she would do it again.",
+      "Most of the money went on the boat."
+    ],
+    "closing": "A jury can only weigh the person in front of it. Graham Tull kept his immunity, and he still chairs the fund."
+  }
+}

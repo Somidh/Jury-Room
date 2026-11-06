@@ -1,7 +1,10 @@
 {
   "id": "hale",
+  "kind": "Murder",
   "title": "State v. Tobin Hale",
   "charge": "Second-degree murder",
+  "teaser": "A night supervisor lies dead in a cold-storage corridor. The man he fired that afternoon says he only came back for his tools.",
+  "openingLean": 0,
   "summary": "Marek Lindqvist, night supervisor at Harbor Cold Storage, was found dead in a chilled corridor at 6 AM, killed by a blow to the head. Tobin Hale, 34, a forklift operator from Dockside Estate, was fired by Lindqvist that afternoon. Hale says he came back that night for his tools and left by 11:40 PM.",
   "evidence": [
     {
@@ -307,5 +310,18 @@
       "The second glove was his. One lab test would have ended the argument in that room. It was never sent."
     ],
     "closing": "Twelve strangers are only ever given what the state can show. That is the promise of reasonable doubt, and this is what it costs."
+  },
+  "fixations": {
+    "1": "The timeline, minute by minute.",
+    "2": "Whoever spoke last and sounded sure.",
+    "3": "The threat text. He said it, he meant it.",
+    "4": "The badge log and its timestamps.",
+    "5": "The body, the injuries and the cold corridor. Hale comes from Dockside Estate, where you grew up, and you can feel the room looking at him the way it once looked at you.",
+    "6": "The compressors. You repair those rooms for a living and you know how loud they get.",
+    "7": "The clock on the wall.",
+    "8": "Inez Porter's identification of the voice.",
+    "9": "How witnesses behaved, and why someone would come back for their tools.",
+    "10": "His assault conviction at 19, and Dockside Estate, where you own rental flats.",
+    "11": "The detective's shortcuts and the untested glove."
   }
 }

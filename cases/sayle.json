@@ -1,0 +1,152 @@
+{
+  "id": "sayle",
+  "kind": "Accident or intent",
+  "title": "State v. Emmett Sayle",
+  "charge": "Second-degree murder",
+  "teaser": "On their twentieth anniversary, a woman falls from a coastal lookout at dusk. Her husband was the only one there. He says the railing gave way.",
+  "openingLean": -8,
+  "summary": "Lorna Sayle, 49, fell 70 feet from the Kestrel Point lookout at dusk on October 12, her twentieth wedding anniversary. Her husband Emmett, 52, a land surveyor, says she leaned on the railing to take a photograph and it gave way, and that he climbed down to try to reach her. The state says there was no accident: that he pushed his wife, and took his time reporting it.",
+  "evidence": [
+    {
+      "id": "railing",
+      "label": "The railing",
+      "detail": "A section of railing tore loose with her. A parks report four months earlier flagged corroded bolts and was never acted on. An engineer says it would have failed under a hard lean or a shove, and can't say which.",
+      "strength": "disputed"
+    },
+    {
+      "id": "delay",
+      "label": "The nineteen minutes",
+      "detail": "Lorna's last photo was taken at 6:41 PM. Emmett's 911 call came at 7:00 PM. He says he climbed down at once and had no signal. Network maps show one bar at the lookout and on the upper path.",
+      "strength": "strong"
+    },
+    {
+      "id": "policy",
+      "label": "The life insurance",
+      "detail": "Lorna's cover rose from $250,000 to $600,000 eight months before her death. Both spouses raised theirs on the same day, on their broker's advice.",
+      "strength": "circumstantial"
+    },
+    {
+      "id": "affair",
+      "label": "The affair",
+      "detail": "Emmett had been seeing a colleague for a year. Lorna found the messages in September and booked a first appointment with a divorce lawyer for October 15.",
+      "strength": "strong"
+    },
+    {
+      "id": "scratches",
+      "label": "The scratches",
+      "detail": "Emmett had fresh scratches on both forearms. He says they came from the rocks. Scrapings under Lorna's nails held a trace of his DNA, which the lab calls unremarkable in a married couple.",
+      "strength": "disputed"
+    },
+    {
+      "id": "boots",
+      "label": "The boots",
+      "detail": "Mud on Emmett's boots matches the cliff path, which supports his climb. It stops at the second ledge, well short of where she lay.",
+      "strength": "disputed"
+    },
+    {
+      "id": "autopsy",
+      "label": "The autopsy",
+      "detail": "Her injuries fit a fall. She landed 11 feet out from the cliff, which an expert says suits a stumble or a push equally. The medical examiner believes she lived for some minutes after landing.",
+      "strength": "disputed"
+    },
+    {
+      "id": "photo",
+      "label": "The last photo",
+      "detail": "The final image on her phone is a blurred smear of sky at 6:41 PM. It fits a camera jolted by a failing railing, and it fits a camera knocked from her hand.",
+      "strength": "circumstantial"
+    }
+  ],
+  "witnesses": [
+    {
+      "id": "dunmore",
+      "name": "Paul Dunmore",
+      "role": "Hiker",
+      "statement": "Was a quarter of a mile away on a windy evening. Heard a woman cry out. He thinks she said 'Don't.' It could have been 'Oh.' He told police both."
+    },
+    {
+      "id": "noone",
+      "name": "Bridget Noone",
+      "role": "Lorna's sister",
+      "statement": "Says Lorna told her a week before: 'He's being so kind lately, it frightens me.' She also says Lorna insisted on the anniversary walk herself, as a last try."
+    },
+    {
+      "id": "pell",
+      "name": "Hannah Pell",
+      "role": "Emmett's colleague",
+      "statement": "Says Emmett told her he'd 'be free by Christmas.' She took that to mean the divorce. She ended it with him the day Lorna died."
+    },
+    {
+      "id": "lennart",
+      "name": "Ivo Lennart",
+      "role": "Park ranger",
+      "statement": "Wrote the railing report and says the bolts could have gone any day. Found Emmett at the cliff top at 7:40, soaked and shaking, and says he could barely speak."
+    }
+  ],
+  "points": [
+    { "id": "g1", "evidenceId": "delay", "claim": "Nineteen minutes passed before he called for help", "pushes": "guilty", "weight": 14, "tactic": "evidence" },
+    { "id": "g2", "evidenceId": "delay", "claim": "There was a bar of signal, so 'no signal' is a lie", "pushes": "guilty", "weight": 13, "tactic": "logic" },
+    { "id": "g3", "evidenceId": "affair", "claim": "She had a divorce lawyer booked three days later", "pushes": "guilty", "weight": 12, "tactic": "logic" },
+    { "id": "g4", "evidenceId": "policy", "claim": "He stood to collect $600,000", "pushes": "guilty", "weight": 10, "tactic": "evidence" },
+    { "id": "g5", "evidenceId": "pell", "claim": "He told his lover he'd be free by Christmas", "pushes": "guilty", "weight": 12, "tactic": "emotional" },
+    { "id": "g6", "evidenceId": "scratches", "claim": "His DNA was under her nails and his arms were scratched", "pushes": "guilty", "weight": 11, "tactic": "evidence" },
+    { "id": "g7", "evidenceId": "dunmore", "claim": "A woman was heard crying 'Don't'", "pushes": "guilty", "weight": 9, "tactic": "emotional" },
+    { "id": "g8", "evidenceId": "noone", "claim": "She told her sister his kindness frightened her", "pushes": "guilty", "weight": 9, "tactic": "emotional" },
+    { "id": "g9", "evidenceId": "boots", "claim": "The mud stops at the second ledge, so he never reached her", "pushes": "guilty", "weight": 10, "tactic": "logic" },
+    { "id": "g10", "evidenceId": "affair", "claim": "A man who cheats for a year will do anything to get out", "pushes": "guilty", "weight": 5, "tactic": "emotional", "prejudicial": true },
+    { "id": "n1", "evidenceId": "railing", "claim": "The parks report warned of those bolts four months earlier", "pushes": "not_guilty", "weight": 10, "tactic": "evidence" },
+    { "id": "n2", "evidenceId": "lennart", "claim": "The ranger says those bolts could have gone any day", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n3", "evidenceId": "railing", "claim": "Nobody can tell a hard lean from a shove", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n4", "evidenceId": "autopsy", "claim": "Eleven feet out fits a stumble as well as a push", "pushes": "not_guilty", "weight": 8, "tactic": "logic" },
+    { "id": "n5", "evidenceId": "boots", "claim": "The mud proves he really did climb down", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n6", "evidenceId": "scratches", "claim": "Married people carry each other's DNA, and rocks scratch arms", "pushes": "not_guilty", "weight": 7, "tactic": "logic" },
+    { "id": "n7", "evidenceId": "policy", "claim": "They both raised their cover, on the broker's advice", "pushes": "not_guilty", "weight": 7, "tactic": "logic" },
+    { "id": "n8", "evidenceId": "dunmore", "claim": "A quarter mile in wind, and it might have been 'Oh'", "pushes": "not_guilty", "weight": 8, "tactic": "evidence" },
+    { "id": "n9", "evidenceId": "noone", "claim": "It was Lorna who insisted on that walk", "pushes": "not_guilty", "weight": 7, "tactic": "logic" },
+    { "id": "n10", "evidenceId": "pell", "claim": "'Free by Christmas' fits a divorce just as well", "pushes": "not_guilty", "weight": 6, "tactic": "logic" },
+    { "id": "n11", "evidenceId": "lennart", "claim": "The ranger found him soaked, shaking and unable to speak", "pushes": "not_guilty", "weight": 6, "tactic": "emotional" },
+    { "id": "n12", "evidenceId": "photo", "claim": "She was taking a photo when it happened, just as he says", "pushes": "not_guilty", "weight": 6, "tactic": "evidence" }
+  ],
+  "focus": {
+    "1": ["delay"],
+    "2": [],
+    "3": ["affair"],
+    "4": ["delay", "policy"],
+    "5": ["autopsy"],
+    "6": ["railing"],
+    "7": [],
+    "8": ["dunmore"],
+    "9": ["lennart", "noone"],
+    "10": ["affair"],
+    "11": ["railing"]
+  },
+  "fixations": {
+    "1": "The clock: 6:41, 7:00, 7:40. Nineteen minutes has to be accounted for, step by step.",
+    "2": "Whoever spoke last and sounded sure.",
+    "3": "A man who cheats on his wife for a year and then gets rich when she dies.",
+    "4": "Probabilities: how often railings fail, and how often wives die three days before a divorce meeting.",
+    "5": "The body. You know what a 70-foot fall does, and how long someone can last.",
+    "6": "Corroded bolts. You've seen what the sea air does to metal, and you know how often the report gets ignored.",
+    "7": "The clock on the wall.",
+    "8": "One word, across a quarter mile of wind, and what a mind does with it afterwards.",
+    "9": "A man who could barely speak, and a woman who was frightened by kindness.",
+    "10": "The affair. A man like that has already shown you what his promises are worth.",
+    "11": "The negligence of a park that was warned, and what the state must prove about a shove nobody saw."
+  },
+  "record": {
+    "supports": "not_guilty",
+    "reason": "He had reasons to want her gone, and his nineteen minutes were never properly explained. But the railing had been reported as unsafe, nobody could tell a lean from a shove, and every physical fact fit a fall as well as it fit a push. Suspicion was all the state had. It never proved he laid a hand on her."
+  },
+  "truth": {
+    "beats": [
+      "Emmett Sayle did not push his wife.",
+      "She leaned out to get the light on the water, the way she always did. The bolts let go. It was exactly what he said.",
+      "He did climb down. He got as far as the second ledge, and from there he could see her.",
+      "She was alive. She had lifted one hand. She was saying his name.",
+      "He had his phone out. There was one bar of signal where he stood.",
+      "He sat down on the ledge.",
+      "He thought about October 15, and about Christmas. He stayed there, holding the phone, until she stopped.",
+      "Then he dialled. By the time the ranger found him he was shaking, and that was real too."
+    ],
+    "closing": "You were asked whether he pushed her. He did not."
+  }
+}
